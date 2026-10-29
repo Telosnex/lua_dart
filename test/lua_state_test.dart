@@ -509,6 +509,33 @@ void main() {
       );
     });
 
+    test('the order of pairs and table.sort is the same everywhere', () {
+      const code = '''
+        local t = {}
+        for i = 1, 40 do t["k" .. i] = i end
+        t.alpha, t.beta, t[1.5], t[true] = 1, 2, 3, 4
+        local keys = {}
+        for k in pairs(t) do keys[#keys + 1] = tostring(k) end
+        local items = {}
+        for i = 1, 300 do items[i] = {g = i % 7, i = i} end
+        table.sort(items, function(a, b) return a.g < b.g end)
+        local order = {}
+        for i = 1, 12 do order[i] = items[i].i end
+        return table.concat(keys, ",") .. "|" .. table.concat(order, ",")
+      ''';
+      String run() {
+        final other = sandboxed();
+        addTearDown(other.close);
+        expect(other.doString(code), isTrue, reason: other.toStr(-1));
+        return other.toStr(-1)!;
+      }
+
+      final first = run();
+      expect(run(), first);
+      // The same on native, dart2js and dart2wasm.
+      expect(first, _kTableOrderGolden);
+    });
+
     test('toStr keeps a leading byte order mark', () {
       ls.pushBytes(Uint8List.fromList([0xEF, 0xBB, 0xBF, 0x41, 0xC3, 0xA9]));
       expect(ls.toStr(-1), '\uFEFFAé');
@@ -645,3 +672,10 @@ void main() {
     }
   });
 }
+
+/// The result of the table order test on every platform (luadart_user.h).
+const _kTableOrderGolden =
+    'true,k23,k27,k20,k28,k24,k11,k31,k35,k39,k15,k4,k6,k22,k1,k3,k26,k33,'
+    '1.5,k13,k17,k37,k10,k30,k34,k9,k14,k38,k21,beta,k29,k40,k25,k19,k18,'
+    'alpha,k32,k5,k12,k7,k16,k8,k36,k2|49,189,231,266,35,112,28,245,56,273,'
+    '252,105';
