@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "sourceKey": "b018a0143f93b2910ccfa61fe34da28d436fc95aea9c134469fa5b65812eb16f",
+  "release": "https://github.com/Telosnex/lua_dart/releases/tag/native-b018a0143f93b291",
+  "runner": "ubuntu-24.04, emscripten/emsdk@sha256:67df07bc59f86685818fa801d340b54e576fe4276cfd3bcfc4da61d564217737",
+  "toolchain": "Emscripten 5.0.0 (a7c5deabd7c88ba1c38ebe988112256775f944c6)",
+  "webVersion": "7c376788bcb66b05",
+  "files": [
+    {
+      "name": "lua_dart_module.mjs",
+      "sha256": "3a37ecb2777f29e9f43b0cd7a0d65189415e2ca1996b278314309ed657063082",
+      "bytes": 24998,
+      "source": "release",
+      "url": "https://github.com/Telosnex/lua_dart/releases/download/native-b018a0143f93b291/web-lua_dart_module.mjs.gz",
+      "downloadSha256": "5223f8783606db58a42b08b8ea7ed504341b842c1fea049b1366f11fe7cbbcaf"
+    },
+    {
+      "name": "lua_dart_module.wasm",
+      "sha256": "513eb2445ff6fe5e20c55a4747330853d3d243009e1d580c20d7ad5d40342495",
+      "bytes": 289444,
+      "source": "release",
+      "url": "https://github.com/Telosnex/lua_dart/releases/download/native-b018a0143f93b291/web-lua_dart_module.wasm.gz",
+      "downloadSha256": "76678a31fbce1c054483b7fd1a4a70955f140322742d3694e8dd1b8de7e35cdb"
+    }
+  ]
+}
