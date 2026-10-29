@@ -7,6 +7,7 @@
 // host_trampoline, which raises the host's error only after Dart returns.
 
 #include "lua_dart.h"
+#include "lua_dart_json.h"
 
 #include <locale.h>
 #include <stdatomic.h>
@@ -495,6 +496,7 @@ static const lib_entry libs[] = {
     {LUADART_LIB_MATH, LUA_MATHLIBNAME, luaopen_math},
     {LUADART_LIB_UTF8, LUA_UTF8LIBNAME, luaopen_utf8},
     {LUADART_LIB_DEBUG, LUA_DBLIBNAME, luaopen_debug},
+    {LUADART_LIB_JSON, "json", luadart_open_json},
 };
 
 // `load` of the sandbox: the original `load` (upvalue 1) with mode "t".

@@ -46,7 +46,7 @@ String readCString(int address) => exports.utf8ToString(address.toJS).toDart;
 
 @JS('TextDecoder')
 extension type _TextDecoder._(JSObject _) implements JSObject {
-  external factory _TextDecoder();
+  external factory _TextDecoder(JSString label, _DecoderOptions options);
   external JSString decode(JSUint8Array bytes);
 }
 
@@ -66,8 +66,13 @@ extension type _Uint8Array._(JSUint8Array _) implements JSUint8Array {
   external void set(JSUint8Array source, JSNumber offset);
 }
 
-// Not fatal: invalid UTF-8 becomes U+FFFD, as on native.
-final _decoder = _TextDecoder();
+extension type _DecoderOptions._(JSObject _) implements JSObject {
+  external factory _DecoderOptions({bool ignoreBOM});
+}
+
+// Not fatal: invalid UTF-8 becomes U+FFFD, as on native. ignoreBOM: a
+// leading byte order mark stays in the text.
+final _decoder = _TextDecoder('utf-8'.toJS, _DecoderOptions(ignoreBOM: true));
 final _encoder = _TextEncoder();
 
 _Uint8Array get _heap => _Uint8Array._(exports.heap);

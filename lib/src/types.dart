@@ -113,7 +113,12 @@ enum ArithOp {
 /// Comparisons of [LuaState.compare], in the order of lua.h.
 enum CmpOp { luaOpEq, luaOpLt, luaOpLe }
 
-/// Standard libraries of [LuaState.openLibs].
+/// The field that marks an empty JSON array: json.decode gives `[]` a
+/// metatable with this field set to true, and json.encode writes an empty
+/// table with such a metatable as `[]`, not `{}`.
+const luaJsonArrayMarker = '__json_array';
+
+/// Standard libraries of [LuaState.openLibs], and [json] of lua_dart.
 enum LuaLib {
   base(1 << 0),
   package(1 << 1),
@@ -124,7 +129,11 @@ enum LuaLib {
   string(1 << 6),
   math(1 << 7),
   utf8(1 << 8),
-  debug(1 << 9);
+  debug(1 << 9),
+
+  /// `json.decode` and `json.encode` in C, with the values of dart:convert
+  /// (src/lua_dart_json.c has the rules).
+  json(1 << 10);
 
   const LuaLib(this.bit);
 
@@ -140,6 +149,7 @@ enum LuaLib {
     string,
     math,
     utf8,
+    json,
   };
 }
 

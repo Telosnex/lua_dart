@@ -28,10 +28,14 @@ set(LUADART_LUA_FILES
 )
 list(TRANSFORM LUADART_LUA_FILES PREPEND "${LUADART_LUA_SOURCE}/")
 
+# lua_dart_json.c uses dtoa.c of lua-cjson (src/third_party).
+set(LUADART_SOURCES src/lua_dart.c src/lua_dart_json.c src/third_party/dtoa.c)
+set_source_files_properties(src/third_party/dtoa.c PROPERTIES COMPILE_OPTIONS "-w")
+
 if(EMSCRIPTEN)
-  add_library(lua_dart STATIC src/lua_dart.c ${LUADART_LUA_FILES})
+  add_library(lua_dart STATIC ${LUADART_SOURCES} ${LUADART_LUA_FILES})
 else()
-  add_library(lua_dart SHARED src/lua_dart.c ${LUADART_LUA_FILES})
+  add_library(lua_dart SHARED ${LUADART_SOURCES} ${LUADART_LUA_FILES})
 endif()
 target_include_directories(lua_dart PRIVATE "${LUADART_LUA_SOURCE}" src)
 

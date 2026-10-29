@@ -105,6 +105,8 @@ Future<void> main(List<String> args) async {
   await run([
     'emcc',
     '$root/src/lua_dart.c',
+    '$root/src/lua_dart_json.c',
+    '$root/src/third_party/dtoa.c',
     for (final name in _luaFiles) '${lua.path}/src/$name.c',
     '-I${lua.path}/src',
     '-I$root/src',

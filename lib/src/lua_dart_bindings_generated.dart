@@ -685,7 +685,11 @@ const int LUADART_LIB_UTF8 = 256;
 
 const int LUADART_LIB_DEBUG = 512;
 
-const int LUADART_LIB_ALL = 1023;
+const int LUADART_LIB_JSON = 1024;
+
+const int LUADART_LIB_ALL = 2047;
+
+const String LUADART_JSON_ARRAY_MARKER = '__json_array';
 
 const int LUADART_OPEN_SANDBOX = 1;
 

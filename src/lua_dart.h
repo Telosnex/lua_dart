@@ -75,7 +75,14 @@ typedef struct lua_State lua_State;
 #define LUADART_LIB_MATH (1u << 7)
 #define LUADART_LIB_UTF8 (1u << 8)
 #define LUADART_LIB_DEBUG (1u << 9)
-#define LUADART_LIB_ALL 0x3FFu
+// json.decode and json.encode, with the values of dart:convert
+// (src/lua_dart_json.c has the rules). Safe in a sandbox.
+#define LUADART_LIB_JSON (1u << 10)
+#define LUADART_LIB_ALL 0x7FFu
+
+// json.decode gives an empty JSON array a metatable with this field set to
+// true; json.encode writes an empty table with it as [], not {}.
+#define LUADART_JSON_ARRAY_MARKER "__json_array"
 
 // luadart_open_libs flag. The package, io and debug libraries are not
 // allowed. Base: `load` accepts text chunks only, and `dofile` and

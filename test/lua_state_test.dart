@@ -509,6 +509,17 @@ void main() {
       );
     });
 
+    test('toStr keeps a leading byte order mark', () {
+      ls.pushBytes(Uint8List.fromList([0xEF, 0xBB, 0xBF, 0x41, 0xC3, 0xA9]));
+      expect(ls.toStr(-1), '\uFEFFAé');
+      ls.pushBytes(Uint8List.fromList([0xEF, 0xBB, 0xBF]));
+      expect(ls.toStr(-1), '\uFEFF');
+      ls.pushBytes(
+        Uint8List.fromList([0xEF, 0xBB, 0xBF, 0xEF, 0xBB, 0xBF, 0xFF]),
+      );
+      expect(ls.toStr(-1), '\uFEFF\uFEFF\uFFFD');
+    });
+
     test('a triggered handle stops Lua at once when attached', () {
       final handle = LuaInterruptHandle()..trigger();
       expect(handle.triggered, isTrue);

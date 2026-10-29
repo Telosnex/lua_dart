@@ -44,11 +44,22 @@ int readPointer(int address) => Pointer<IntPtr>.fromAddress(address).value;
 String readCString(int address) =>
     Pointer<Utf8>.fromAddress(address).toDartString();
 
-/// [length] bytes at [address] as UTF-8; invalid UTF-8 becomes U+FFFD.
+/// [length] bytes at [address] as UTF-8; invalid UTF-8 becomes U+FFFD. A
+/// leading byte order mark stays: utf8.decode would drop it.
 String decodeUtf8(int address, int length) {
   final view = Pointer<Uint8>.fromAddress(address).asTypedList(length);
   for (var i = 0; i < length; i++) {
-    if (view[i] >= 0x80) return utf8.decode(view, allowMalformed: true);
+    if (view[i] >= 0x80) {
+      if (length >= 3 &&
+          view[0] == 0xEF &&
+          view[1] == 0xBB &&
+          view[2] == 0xBF) {
+        // Decode after a space, which is then removed: utf8.decode keeps a
+        // mark that is not at the start.
+        return utf8.decode([0x20, ...view], allowMalformed: true).substring(1);
+      }
+      return utf8.decode(view, allowMalformed: true);
+    }
   }
   return String.fromCharCodes(view);
 }
