@@ -10,8 +10,13 @@ import 'api_web.g.dart';
 const defaultModuleUrl = 'kiln/lua_dart/lua_dart_module.mjs';
 
 extension type _Factory._(JSFunction _) implements JSFunction {
-  JSPromise<LuaDartModule> call() =>
-      callAsFunction() as JSPromise<LuaDartModule>;
+  JSPromise<LuaDartModule> call(_ModuleArg arg) =>
+      callAsFunction(null, arg) as JSPromise<LuaDartModule>;
+}
+
+/// The argument of the Emscripten factory.
+extension type _ModuleArg._(JSObject _) implements JSObject {
+  external factory _ModuleArg({JSFunction locateFile});
 }
 
 extension type _EsModule._(JSObject _) implements JSObject {
@@ -81,7 +86,14 @@ Future<void> loadModule(Uri? moduleUri) {
     try {
       final url = resolveModuleUrl(moduleUri).toString();
       final esModule = await importModule(url.toJS).toDart as _EsModule;
-      _module = await esModule.factory().toDart;
+      // The .wasm file gets the query of the module too (kiln ADR 002 D7):
+      // a cached .wasm of another release must not load with this module.
+      final query = Uri.parse(url).query;
+      String locate(String path, String directory) =>
+          '$directory$path${query.isEmpty ? '' : '?$query'}';
+      _module = await esModule
+          .factory(_ModuleArg(locateFile: locate.toJS))
+          .toDart;
     } catch (e) {
       _loading = null;
       throw StateError('lua_dart: cannot load the web runtime: $e');
