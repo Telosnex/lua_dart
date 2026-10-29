@@ -21,6 +21,8 @@ Future<void> loadRuntime_({Uri? moduleUri}) => loadModule(moduleUri);
 
 bool get runtimeLoaded => moduleLoaded;
 
+Uri? get runtimeModuleUri_ => moduleUrl;
+
 int memAlloc(int bytes) {
   final p = exports.malloc(bytes.toJS).toDartInt;
   if (p == 0) throw OutOfMemoryError();

@@ -26,4 +26,29 @@ void main() {
     expect(v, isNotEmpty);
     expect(Uri.parse(wasm).queryParameters['v'], v);
   });
+
+  test(
+    'runtimeModuleUri: the default of the page, then the loaded URL',
+    () async {
+      // Before loading: kiln/lua_dart/ of the base URI of the page.
+      if (!LuaState.isRuntimeLoaded) {
+        expect(
+          '${LuaState.runtimeModuleUri}',
+          startsWith(
+            Uri.base.resolve('kiln/lua_dart/lua_dart_module.mjs').toString(),
+          ),
+        );
+      }
+      final module = Uri.base.resolve(
+        'packages/lua_dart/web/lua_dart_module.mjs',
+      );
+      await LuaState.loadRuntime(moduleUri: module);
+      expect(LuaState.isRuntimeLoaded, isTrue);
+      expect(
+        LuaState.runtimeModuleUri?.replace(query: ''),
+        module.replace(query: ''),
+      );
+      expect(LuaState.runtimeModuleUri?.queryParameters['v'], isNotEmpty);
+    },
+  );
 }

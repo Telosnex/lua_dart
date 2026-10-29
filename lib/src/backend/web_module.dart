@@ -79,6 +79,13 @@ Uri resolveModuleUrl(Uri? moduleUri) {
 }
 
 Future<void>? _loading;
+Uri? _loadedUrl;
+
+/// The URL the module loaded from; before that, the default resolved
+/// against the page. Null in a Worker that has not loaded it: a Worker has
+/// no page to resolve against.
+Uri? get moduleUrl =>
+    _loadedUrl ?? (_document != null ? resolveModuleUrl(null) : null);
 
 Future<void> loadModule(Uri? moduleUri) {
   if (_module != null) return Future.value();
@@ -94,6 +101,7 @@ Future<void> loadModule(Uri? moduleUri) {
       _module = await esModule
           .factory(_ModuleArg(locateFile: locate.toJS))
           .toDart;
+      _loadedUrl = Uri.parse(url);
     } catch (e) {
       _loading = null;
       throw StateError('lua_dart: cannot load the web runtime: $e');

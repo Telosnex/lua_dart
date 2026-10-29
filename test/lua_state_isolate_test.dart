@@ -20,6 +20,7 @@ Future<void> _interruptLater(
 }
 
 void main() {
+  setUpAll(LuaState.loadRuntime);
   late LuaState ls;
   setUp(() => ls = sandboxed());
   tearDown(() => ls.close());

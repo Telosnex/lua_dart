@@ -18,10 +18,18 @@ export 'api_native.g.dart';
 /// Bytes of a pointer.
 const pointerSize = 8;
 
-/// Native code needs no loading.
-Future<void> loadRuntime_({Uri? moduleUri}) async {}
+var _loaded = false;
 
-bool get runtimeLoaded => true;
+/// Native code needs no loading, but the call is required on every
+/// platform, so a missing call fails in native tests too, not only on the
+/// web. Per isolate.
+Future<void> loadRuntime_({Uri? moduleUri}) async {
+  _loaded = true;
+}
+
+bool get runtimeLoaded => _loaded;
+
+Uri? get runtimeModuleUri_ => null;
 
 int memAlloc(int bytes) {
   final p = malloc<Uint8>(bytes);

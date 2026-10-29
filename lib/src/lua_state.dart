@@ -19,13 +19,26 @@ final class LuaState implements Finalizable {
   LuaState._(this._vm, this._l);
 
   /// Loads the WebAssembly runtime on the web; returns at once on native
-  /// platforms. Await it before the first [LuaState.newState] on the web.
+  /// platforms. Await it on each isolate (or Worker) before its first
+  /// [LuaState.newState], on every platform: a missing call then fails in
+  /// native tests too, not only on the web. Idempotent.
+  ///
   /// [moduleUri] is the URL of `lua_dart_module.mjs`, by default
-  /// `kiln/lua_dart/lua_dart_module.mjs` of the page, where the build hook
-  /// installs it. In a Worker, pass an absolute [moduleUri]: a Worker has no
-  /// page to resolve against.
+  /// `kiln/lua_dart/lua_dart_module.mjs` resolved against the base URI of the
+  /// page (its `<base href>`), where the build hook installs it. In a Worker,
+  /// pass an absolute [moduleUri], for example the [runtimeModuleUri] of the
+  /// page: a Worker has no page to resolve against.
   static Future<void> loadRuntime({Uri? moduleUri}) =>
       loadRuntime_(moduleUri: moduleUri);
+
+  /// True when [loadRuntime] has completed on this isolate or Worker.
+  static bool get isRuntimeLoaded => runtimeLoaded;
+
+  /// On the web, the absolute URL of `lua_dart_module.mjs`: the URL it was
+  /// loaded from, or before that, the default resolved against the base URI
+  /// of the page. A page sends it to its Workers. Null on native platforms,
+  /// and in a Worker before [loadRuntime].
+  static Uri? get runtimeModuleUri => runtimeModuleUri_;
 
   /// A new state with no libraries.
   ///
@@ -761,7 +774,8 @@ final class _Vm implements Finalizable {
     RangeError.checkNotNegative(memoryLimit, 'memoryLimit');
     if (!runtimeLoaded) {
       throw StateError(
-        'lua_dart: await LuaState.loadRuntime() before the first state.',
+        'lua_dart: await LuaState.loadRuntime() on this isolate before its '
+        'first state (required on every platform).',
       );
     }
     if (!_abiChecked) {
