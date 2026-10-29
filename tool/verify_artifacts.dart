@@ -55,8 +55,11 @@ void main() {
   final abi = RegExp(
     r'#define LUADART_ABI_VERSION (\d+)',
   ).firstMatch(header)?[1];
-  if (!read('tool/build_native_artifact.sh').contains('lua_dart ABI $abi;')) {
-    problems.add('tool/build_native_artifact.sh does not check ABI $abi.');
+  // The build script reads the ABI from the header.
+  if (!read(
+    'tool/build_native_artifact.sh',
+  ).contains(r'"lua_dart ABI $abi; Lua $LUA_VERSION"')) {
+    problems.add('tool/build_native_artifact.sh does not check the ABI.');
   }
   if (!read('test/lua_state_test.dart').contains('lua_dart ABI $abi;')) {
     problems.add('test/lua_state_test.dart does not check ABI $abi.');
