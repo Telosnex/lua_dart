@@ -83,4 +83,23 @@ void main() {
     expect(await ready.first, isTrue);
     expect(handle.triggered, isTrue);
   });
+
+  test('a handle crosses a channel of plain values as an int', () async {
+    final handle = LuaInterruptHandle();
+    final ready = ReceivePort();
+    await Isolate.spawn(_triggerAddress, (
+      handle.share().address,
+      ready.sendPort,
+    ));
+    expect(await ready.first, isTrue);
+    expect(handle.triggered, isTrue);
+  });
+}
+
+void _triggerAddress((int, SendPort) message) {
+  final (address, port) = message;
+  LuaInterruptHandle.receive(
+    SharedLuaInterruptHandle.fromAddress(address),
+  ).trigger();
+  port.send(true);
 }

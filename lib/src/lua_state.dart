@@ -714,7 +714,15 @@ final class LuaInterruptHandle implements Finalizable {
 final class SharedLuaInterruptHandle {
   const SharedLuaInterruptHandle._(this._address);
 
+  /// The reference of [address], for channels that carry only plain values
+  /// such as JSON. [address] must come from [SharedLuaInterruptHandle.address]
+  /// in the same process; pass it to [LuaInterruptHandle.receive] once.
+  const SharedLuaInterruptHandle.fromAddress(int address) : _address = address;
+
   final int _address;
+
+  /// The reference as an int, for [SharedLuaInterruptHandle.fromAddress].
+  int get address => _address;
 }
 
 /// Thrown by [LuaState.error] and its relatives in a host function: the
