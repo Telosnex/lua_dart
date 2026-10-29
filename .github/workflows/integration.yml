@@ -1,0 +1,166 @@
+name: Integration
+
+on:
+  push:
+    # ci/** branches run it too: a new workflow cannot be started by hand
+    # before it is on main.
+    branches: [main, 'ci/**']
+  schedule:
+    - cron: '23 7 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: integration-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # The VM tests load the released native library of each platform,
+  # including the interrupt from another isolate. The jobs share the steps
+  # of the first (YAML anchor).
+  desktop-linux-x64:
+    name: Linux x64
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps: &native_steps
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: Telosnex/telosnex_ci_tools/actions/setup-flutter@cba77fc0d4330f1bef81193c53cd7dd976f0ebcf # v0.5.3
+      - run: dart pub get
+      - run: dart test -r expanded
+
+  desktop-linux-arm64:
+    name: Linux ARM64
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+    steps: *native_steps
+
+  desktop-macos-arm64:
+    name: macOS ARM64
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps: *native_steps
+
+  desktop-macos-x64:
+    name: macOS x64
+    runs-on: macos-15-intel
+    timeout-minutes: 30
+    steps: *native_steps
+
+  desktop-windows-x64:
+    name: Windows x64
+    runs-on: windows-2025
+    timeout-minutes: 30
+    steps: *native_steps
+
+  desktop-windows-arm64:
+    name: Windows ARM64
+    runs-on: windows-11-arm
+    timeout-minutes: 30
+    steps: *native_steps
+
+  # The jobs share the steps of the first (YAML anchor).
+  web-linux-chrome-dart2js:
+    name: Web Linux x64 Chrome dart2js
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      BROWSER: chrome
+      COMPILER: dart2js
+    steps: &web_steps
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: Telosnex/telosnex_ci_tools/actions/setup-flutter@cba77fc0d4330f1bef81193c53cd7dd976f0ebcf # v0.5.3
+      - run: dart pub get
+      - run: dart run kiln:web install-dev
+      - uses: Telosnex/telosnex_ci_tools/actions/dart-test-browser@cba77fc0d4330f1bef81193c53cd7dd976f0ebcf # v0.5.3
+        with:
+          platform: ${{ env.BROWSER }}
+          compiler: ${{ env.COMPILER }}
+          args: -j 1
+
+  web-linux-chrome-dart2wasm:
+    name: Web Linux x64 Chrome dart2wasm
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      BROWSER: chrome
+      COMPILER: dart2wasm
+    steps: *web_steps
+
+  web-linux-firefox-dart2js:
+    name: Web Linux x64 Firefox dart2js
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      BROWSER: firefox
+      COMPILER: dart2js
+    steps: *web_steps
+
+  web-macos-safari-dart2js:
+    name: Web macOS ARM64 Safari dart2js
+    runs-on: macos-26
+    timeout-minutes: 30
+    env:
+      BROWSER: safari
+      COMPILER: dart2js
+    steps: *web_steps
+
+  ios:
+    name: iOS ARM64 simulator
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: Telosnex/telosnex_ci_tools/actions/setup-flutter@cba77fc0d4330f1bef81193c53cd7dd976f0ebcf # v0.5.3
+      - run: dart pub get
+      - uses: Telosnex/telosnex_ci_tools/actions/ios-simulator-boot@cba77fc0d4330f1bef81193c53cd7dd976f0ebcf # v0.5.3
+      - run: dart run tool/prebuilt_artifacts.dart ios-arm64-iphonesimulator
+      # The C smoke test, with the interrupt from another thread. The script
+      # writes no log file: its output goes to one, for the upload.
+      - name: Test on the simulator (tool/test_ios_simulator.sh)
+        run: |
+          set -o pipefail
+          tool/test_ios_simulator.sh 2>&1 | tee "$RUNNER_TEMP/ios-simulator.log"
+      - name: Upload the simulator logs
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ios-simulator-logs
+          path: ${{ runner.temp }}/ios-simulator.log
+          if-no-files-found: ignore
+
+  android:
+    name: Android x64 emulator
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: Telosnex/telosnex_ci_tools/actions/setup-flutter@cba77fc0d4330f1bef81193c53cd7dd976f0ebcf # v0.5.3
+      - run: dart pub get
+      - id: emulator
+        uses: Telosnex/telosnex_ci_tools/actions/android-emulator@cba77fc0d4330f1bef81193c53cd7dd976f0ebcf # v0.5.3
+        with:
+          api-level: '36'
+      - run: dart run tool/prebuilt_artifacts.dart android-x64
+      - run: tool/test_android_device.sh
+      - if: failure() || cancelled()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: android-emulator-logs
+          path: |
+            ${{ steps.emulator.outputs.log }}
+            ${{ steps.emulator.outputs.logcat }}
+          if-no-files-found: ignore

@@ -1,0 +1,24 @@
+name: lua_dart
+description: >-
+  The reference Lua 5.4 (PUC-Rio) behind a stable C ABI, with a Dart API in
+  the style of the Lua C API: dart:ffi on native platforms, WebAssembly on
+  the web. Memory limits, interrupts from another isolate, text-only chunk
+  loading.
+repository: https://github.com/Telosnex/lua_dart
+version: 0.1.0-dev
+publish_to: none
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  code_assets: ^1.0.0
+  crypto: ^3.0.6
+  ffi: ^2.1.4
+  hooks: ^2.0.2
+  kiln: ^0.1.2
+
+dev_dependencies:
+  ffigen: ^20.1.1
+  lints: ^6.0.0
+  test: ^1.28.0

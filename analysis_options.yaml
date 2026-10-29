@@ -1,0 +1,10 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  # Its own package, with lua_dardo_plus from a sibling checkout.
+  exclude:
+    - test/perf/**
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true

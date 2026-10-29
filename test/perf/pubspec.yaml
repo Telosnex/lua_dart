@@ -1,0 +1,18 @@
+# Benchmarks of lua_dart against lua_dardo_plus. A separate package, so the
+# lua_dart package does not depend on lua_dardo_plus. Expects lua_dardo_plus
+# next to lua_dart.
+name: lua_dart_perf
+publish_to: none
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  lua_dardo_plus:
+    path: ../../../lua_dardo_plus
+  lua_dart:
+    path: ../..
+  vm_service: any
+dev_dependencies:
+  lints: ^6.0.0
+  test: any

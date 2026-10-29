@@ -1,0 +1,9 @@
+# Fetched by tool/fetch_lua.sh at the pinned release; never committed.
+third_party/
+
+build/
+.dart_tool/
+pubspec.lock
+.idea/
+*.iml
+.DS_Store

@@ -1,0 +1,40 @@
+name: Unit
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    # ci/** branches run it too: a new workflow cannot be started by hand
+    # before it is on main.
+    branches: [main, 'ci/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: unit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: Unit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: Telosnex/telosnex_ci_tools/actions/setup-flutter@cba77fc0d4330f1bef81193c53cd7dd976f0ebcf # v0.5.3
+      - uses: Telosnex/telosnex_ci_tools/actions/lint@cba77fc0d4330f1bef81193c53cd7dd976f0ebcf # v0.5.3
+      - run: dart pub get
+      - run: dart format --output=none --set-exit-if-changed lib test tool
+      - run: dart analyze --fatal-infos
+      # The generated files of src/lua_dart.h, the Lua pin and the ABI.
+      - run: dart tool/generate_exports.dart --check
+      - run: dart tool/generate_backends.dart --check
+      - run: dart tool/verify_artifacts.dart
+      # kiln:check needs native_artifacts/prebuilt.json, from the first
+      # Kiln release.
+      # The hook builds the library from source here (CMake, GCC).
+      - run: dart test -r expanded

@@ -1,0 +1,19 @@
+# Native and web inputs: CMakeLists.txt, src/, hook/, pubspec.yaml, and the
+# build and fetch scripts, including tool/kiln/build_web.dart (kiln
+# ADR 002 D5).
+analysis_options.yaml
+dart_test.yaml
+ffigen.yaml
+native_test/
+third_party/
+test/
+native_artifacts/README.md
+native_artifacts/manifest.json
+native_artifacts/licenses/
+tool/generate_backends.dart
+tool/prebuilt_artifacts.dart
+tool/test_android_device.sh
+tool/test_ios_simulator.sh
+tool/verify_artifacts.dart
+tool/kiln/test_build.dart
+tool/kiln/test_web.dart
