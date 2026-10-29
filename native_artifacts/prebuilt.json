@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "sourceKey": "7c95d319032fc60509854c3759a2a687a6c8120e07280f94d4f7b183c19e9524",
-  "release": "https://github.com/Telosnex/lua_dart/releases/tag/native-7c95d319032fc605",
+  "sourceKey": "951d76c1fa2e01ab215a0439e9c4bc56b9b5ed85e5f01e52f829d3ecb8d36489",
+  "release": "https://github.com/Telosnex/lua_dart/releases/tag/native-951d76c1fa2e01ab",
   "targets": {
     "android-arm": {
       "runner": "ubuntu22 20261026.341.1",
@@ -10,9 +10,9 @@
       "files": [
         {
           "name": "liblua_dart.so",
-          "sha256": "79cbd7f34f8c33377f4440d4885905ecb80f671bd03e71bbdde094c572672526",
-          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-7c95d319032fc605/android-arm-liblua_dart.so.gz",
-          "downloadSha256": "f71dd6fd296017113dfe35d2c50c88225ff11f5736a867ff532b1cb0deb08aaf",
+          "sha256": "0bf62800bd316be10797eda085c8ac66363ca6a342cde44fd05e29dee6b77d7f",
+          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-951d76c1fa2e01ab/android-arm-liblua_dart.so.gz",
+          "downloadSha256": "1b5f097a2e7a61424fe39d8ada87f299223e1f5fd76b541578d364596b4c00d9",
           "delivery": "bundle",
           "asset": "lua_dart_bindings_generated.dart"
         }
@@ -25,9 +25,9 @@
       "files": [
         {
           "name": "liblua_dart.so",
-          "sha256": "5f062f161c8d8021a3737b3d9c7e03344809210aec534d74166ed4896549adb8",
-          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-7c95d319032fc605/android-arm64-liblua_dart.so.gz",
-          "downloadSha256": "0e6e80295561ccde6e3bb4708faf540c14761ae4cd6524aac329c902b761e8e4",
+          "sha256": "1c579f5dcac0e9eae4744bbe383d4c77884eb625d6e7ce365f1d0bb56f007958",
+          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-951d76c1fa2e01ab/android-arm64-liblua_dart.so.gz",
+          "downloadSha256": "924a9ee36bdc5783ec7cbb80143d29dc4ae1016cc14672538384bf1e01f633f7",
           "delivery": "bundle",
           "asset": "lua_dart_bindings_generated.dart"
         }
@@ -40,9 +40,9 @@
       "files": [
         {
           "name": "liblua_dart.so",
-          "sha256": "4ffb588022b6044524ae1fef0310877e11dc45076f0f68d44bfa33b236b755b6",
-          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-7c95d319032fc605/android-x64-liblua_dart.so.gz",
-          "downloadSha256": "40ef8c3b85b55001d4ea8e42631680a71cc7d85b74e90fd470d13b08b07b9e0a",
+          "sha256": "d8d0b916125ae4f0c94f0c7f2e483521b086a4d68bef571520703d14e9e630bf",
+          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-951d76c1fa2e01ab/android-x64-liblua_dart.so.gz",
+          "downloadSha256": "26ebaddcbee7b58a046bf457c5ee8a27068e98f1fc58f43a9feca833e6b590d6",
           "delivery": "bundle",
           "asset": "lua_dart_bindings_generated.dart"
         }
@@ -55,24 +55,24 @@
       "files": [
         {
           "name": "liblua_dart.dylib",
-          "sha256": "29ac7220ac7607b6ab373419c26f7212e8110a7a1d24b39f4f8d749bf4fb949a",
-          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-7c95d319032fc605/ios-arm64-iphoneos-liblua_dart.dylib.gz",
-          "downloadSha256": "4eb79719f1dce8e438b8984166d76f32d84afce9b7ca5d0b0f8ea625270736b7",
+          "sha256": "e07f05d3940c191513ec150be25696c52f20b69f88c3b8cfc1f850d40fe484cd",
+          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-951d76c1fa2e01ab/ios-arm64-iphoneos-liblua_dart.dylib.gz",
+          "downloadSha256": "b006343c023bddb5c3d9b6651e1023ac8d912c50ff9ca071d53d36ae9d950e3b",
           "delivery": "bundle",
           "asset": "lua_dart_bindings_generated.dart"
         }
       ]
     },
     "ios-arm64-iphonesimulator": {
-      "runner": "macos15 20260907.0337.1",
-      "toolchain": "Xcode 16.4, cmake version 4.4.3",
+      "runner": "macos15 20261028.0489.1",
+      "toolchain": "Xcode 16.4, cmake version 4.4.4",
       "minOSVersion": 13,
       "files": [
         {
           "name": "liblua_dart.dylib",
-          "sha256": "31a97dd07bfec0ecd81a0916b6b2c4f8d799ea5d1b758fbd1aaf3076f9cc5ff7",
-          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-7c95d319032fc605/ios-arm64-iphonesimulator-liblua_dart.dylib.gz",
-          "downloadSha256": "f6bd607cf35e32d080ccdc9dde381033c657a8ffbfef0afb49749e29e8dd990e",
+          "sha256": "6d340df1d394ee855dd3e6199f20ef2b055d7f316861ad41b4cc8276f8e28585",
+          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-951d76c1fa2e01ab/ios-arm64-iphonesimulator-liblua_dart.dylib.gz",
+          "downloadSha256": "2f240f1ab9e08218f45944cd73451e641ed8971cff8a7358d68c2a2e338b3a90",
           "delivery": "bundle",
           "asset": "lua_dart_bindings_generated.dart"
         }
@@ -85,9 +85,9 @@
       "files": [
         {
           "name": "liblua_dart.dylib",
-          "sha256": "93fb59b9fa6269b95913d5257874ff19180150302135952295cf235190fa94b8",
-          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-7c95d319032fc605/ios-x64-iphonesimulator-liblua_dart.dylib.gz",
-          "downloadSha256": "3ddbfde3d1dd6c25880d7c9ac90e3d88a84f80c72b280ce6d0288865b9992264",
+          "sha256": "a19f585fa9a09a7cd3f65c63b450c4beee199c024b61cc7d6b035430af5755a0",
+          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-951d76c1fa2e01ab/ios-x64-iphonesimulator-liblua_dart.dylib.gz",
+          "downloadSha256": "17712c93e350d276508381b65d0d581df223eaa5fe29497959bb158c9d54dab7",
           "delivery": "bundle",
           "asset": "lua_dart_bindings_generated.dart"
         }
@@ -99,9 +99,9 @@
       "files": [
         {
           "name": "liblua_dart.so",
-          "sha256": "21882bad4db381556ef4ed44f3b1fb5f98d86fbd672e464a4380f26a70588aac",
-          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-7c95d319032fc605/linux-arm64-liblua_dart.so.gz",
-          "downloadSha256": "5cd2152db0777b8f54f18b0e805b9870b2228c88c3387f5d3e68250ad1ef3dad",
+          "sha256": "d40364c9d176c7e489cc0bd5b47f45f8d68cb7abd8cc48df96c0ec110f73fb78",
+          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-951d76c1fa2e01ab/linux-arm64-liblua_dart.so.gz",
+          "downloadSha256": "af6d04e57e3245da776a1c6c55501f171ebe03817a627b0560674c5c571c9431",
           "delivery": "bundle",
           "asset": "lua_dart_bindings_generated.dart"
         }
@@ -113,24 +113,24 @@
       "files": [
         {
           "name": "liblua_dart.so",
-          "sha256": "dee2753d6660eb61420ab7c15526fb59605893311ab4322a93401f3a5850420c",
-          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-7c95d319032fc605/linux-x64-liblua_dart.so.gz",
-          "downloadSha256": "8b660fc67f3f90808d6b4068f2789ae63b868339a9cd2bcb09d3fb07677687c2",
+          "sha256": "9d4e754fe92dd6aa9caa85d06db7f914be0fd8afd4b3b97d977ff74088d2075e",
+          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-951d76c1fa2e01ab/linux-x64-liblua_dart.so.gz",
+          "downloadSha256": "38e38defdae52e1da356a17cb40a4c5c6ab590c72f3d988618440b3d733373e7",
           "delivery": "bundle",
           "asset": "lua_dart_bindings_generated.dart"
         }
       ]
     },
     "macos-arm64": {
-      "runner": "macos15 20260907.0337.1",
-      "toolchain": "Xcode 16.4, cmake version 4.4.3",
+      "runner": "macos15 20261028.0489.1",
+      "toolchain": "Xcode 16.4, cmake version 4.4.4",
       "minOSVersion": 12,
       "files": [
         {
           "name": "liblua_dart.dylib",
-          "sha256": "0ebeb545006f72802cbe6ede1f636755659375df87645d567e77ffa92f1caa37",
-          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-7c95d319032fc605/macos-arm64-liblua_dart.dylib.gz",
-          "downloadSha256": "a3f9884262e91a1d8eb184be5fb2fe7f1efb3ad331961b3c6aca17eadbb97d2f",
+          "sha256": "fc898b459f0ca9871ef35b4293a77a71ee651cd977c0f796fee14fdff9fc60c6",
+          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-951d76c1fa2e01ab/macos-arm64-liblua_dart.dylib.gz",
+          "downloadSha256": "71fb456b8eea0404c2b70a237ab59248e38c6ee0e7a4ddbffe9b0d85e782fbae",
           "delivery": "bundle",
           "asset": "lua_dart_bindings_generated.dart"
         }
@@ -143,9 +143,9 @@
       "files": [
         {
           "name": "liblua_dart.dylib",
-          "sha256": "c96ff168eb28e034c5d49d230d8e419c9cef16af5d83e10fb4061207ec81a421",
-          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-7c95d319032fc605/macos-x64-liblua_dart.dylib.gz",
-          "downloadSha256": "9b00f5a5ec1f9cab29fa1e9c97c4b5fe1d715c0dbc3135a3d3323101c917f9a3",
+          "sha256": "d1beaa62799349017444eeaf38ae5cb4f3e77d9996c42a0d4784d79b187222dc",
+          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-951d76c1fa2e01ab/macos-x64-liblua_dart.dylib.gz",
+          "downloadSha256": "8ee8b6ea5d3f91d0978d743eeb2bb2feb4799897b4e18ee1713f2705558ea98b",
           "delivery": "bundle",
           "asset": "lua_dart_bindings_generated.dart"
         }
@@ -157,9 +157,9 @@
       "files": [
         {
           "name": "lua_dart.dll",
-          "sha256": "8ff8e2e87a6a297500643beaa44eb84d35e81d95c30e401af944d885f1bf0fc5",
-          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-7c95d319032fc605/windows-arm64-lua_dart.dll.gz",
-          "downloadSha256": "6e5f1cc2baaebfc1fbce1e9301c4f03a6f59e2eab4058ffc2611dec35ccbf8fc",
+          "sha256": "725a1f6fba419a90fb19fffecfd53f7c0a552a6cf59519bfb980e938a58d2707",
+          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-951d76c1fa2e01ab/windows-arm64-lua_dart.dll.gz",
+          "downloadSha256": "2a4837b96ef9e06cebf17d72ef38ea3d0b3242052b1cdcb77daa987f3e6bf2a4",
           "delivery": "bundle",
           "asset": "lua_dart_bindings_generated.dart"
         }
@@ -171,9 +171,9 @@
       "files": [
         {
           "name": "lua_dart.dll",
-          "sha256": "c18d570c226ab8fa857de3a1961dc6b12fe8712a05b9d3321501944499722e83",
-          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-7c95d319032fc605/windows-x64-lua_dart.dll.gz",
-          "downloadSha256": "441cbd1ce8d779526c6b2abc5dee2a6509f8a7d161fe0c44eebedf11d4028254",
+          "sha256": "c1f029f5f9f5688f952bb8186993adc9c5a99a383bee303c5c3391c7f17657f3",
+          "url": "https://github.com/Telosnex/lua_dart/releases/download/native-951d76c1fa2e01ab/windows-x64-lua_dart.dll.gz",
+          "downloadSha256": "fbcba63933fe2fc6eabbfbc1ac5586ceda59137a346a9db1fad8f0f92ae041dc",
           "delivery": "bundle",
           "asset": "lua_dart_bindings_generated.dart"
         }
