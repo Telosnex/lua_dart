@@ -34,7 +34,6 @@ jobs:
       - run: dart tool/generate_exports.dart --check
       - run: dart tool/generate_backends.dart --check
       - run: dart tool/verify_artifacts.dart
-      # kiln:check needs native_artifacts/prebuilt.json, from the first
-      # Kiln release.
+      - run: dart run kiln:check
       # The hook builds the library from source here (CMake, GCC).
       - run: dart test -r expanded
