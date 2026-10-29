@@ -82,15 +82,26 @@ final class LuaState implements Finalizable {
   /// its next instruction, and all Lua code after it until
   /// [clearInterrupt], so a `pcall` in the script cannot continue. Lua code
   /// that runs no VM instructions, for example one long `string.rep`, is
-  /// not interrupted. Use [interrupter] from another isolate.
+  /// not interrupted. From another isolate, use [attachInterruptHandle].
   void interrupt() => luadart_interrupt(_p);
 
   /// Lets Lua code run again after [interrupt].
   void clearInterrupt() => luadart_clear_interrupt(_p);
 
-  /// An object that another isolate can use to interrupt the state while
-  /// this isolate runs Lua. Do not use it after [close].
-  LuaInterrupter get interrupter => LuaInterrupter._(_vm.mainPointer);
+  /// Attaches [handle]: [LuaInterruptHandle.trigger] from any isolate then
+  /// interrupts this state, as [interrupt]. If the handle was triggered
+  /// already, Lua code fails at once. [close] detaches it. Throws
+  /// [StateError] if the state or the handle has one attached already.
+  void attachInterruptHandle(LuaInterruptHandle handle) {
+    final p = _p;
+    luadart_interrupt_handle_retain(handle._address);
+    if (luadart_attach_interrupt_handle(p, handle._address) != LUADART_OK) {
+      throw StateError('lua_dart: an interrupt handle is attached already');
+    }
+  }
+
+  /// Detaches the handle of [attachInterruptHandle], if any.
+  void detachInterruptHandle() => luadart_detach_interrupt_handle(_p);
 
   /// lua_gc. Returns the result of lua_gc, for example the KiB in use for
   /// [LuaGcOp.count].
@@ -661,14 +672,49 @@ final class LuaState implements Finalizable {
       '${isMainThread ? '' : ', thread'}${_vm.closed ? ', closed' : ''})';
 }
 
-/// Interrupts a [LuaState] from any isolate (luadart_interrupt).
-final class LuaInterrupter {
-  const LuaInterrupter._(this._address);
+/// An interrupt that any isolate can trigger at any time, also while the
+/// state that uses it closes, or after (luadart_interrupt_handle).
+///
+/// Each isolate holds its own reference, which its finalizer releases. To
+/// give a handle to another isolate, send [share] and call
+/// [LuaInterruptHandle.receive] there once.
+final class LuaInterruptHandle implements Finalizable {
+  factory LuaInterruptHandle() {
+    final address = luadart_interrupt_handle_new();
+    if (address == 0) throw OutOfMemoryError();
+    return LuaInterruptHandle._(address);
+  }
+
+  /// Takes over the reference of [shared]. Call it once for each [share].
+  factory LuaInterruptHandle.receive(SharedLuaInterruptHandle shared) =>
+      LuaInterruptHandle._(shared._address);
+
+  LuaInterruptHandle._(this._address) {
+    attachRelease(this, _address);
+  }
 
   final int _address;
 
-  /// [LuaState.interrupt] from any isolate. The state must not be closed.
-  void interrupt() => luadart_interrupt(_address);
+  /// A new reference that can be sent to another isolate. If it is never
+  /// received, its 32 bytes are not freed.
+  SharedLuaInterruptHandle share() {
+    luadart_interrupt_handle_retain(_address);
+    return SharedLuaInterruptHandle._(_address);
+  }
+
+  /// Interrupts the attached state, and any state that attaches the handle
+  /// later. Lua code fails with [ThreadStatus.luaErrInterrupt].
+  void trigger() => luadart_interrupt_handle_trigger(_address);
+
+  /// Whether [trigger] was called.
+  bool get triggered => luadart_interrupt_handle_triggered(_address) != 0;
+}
+
+/// A reference to a [LuaInterruptHandle] in an isolate message.
+final class SharedLuaInterruptHandle {
+  const SharedLuaInterruptHandle._(this._address);
+
+  final int _address;
 }
 
 /// Thrown by [LuaState.error] and its relatives in a host function: the

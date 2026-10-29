@@ -14,7 +14,8 @@
 //   the host function returns (see luadart_host_fn).
 // * Chunks load as text only. Precompiled bytecode is never accepted.
 // * A lua_State and its threads are used by one OS thread at a time.
-//   luadart_interrupt is the only function that another thread may call.
+//   luadart_interrupt and the luadart_interrupt_handle_* functions are the
+//   only functions that another thread may call.
 //
 // Status results of the functions that return a status:
 //
@@ -33,7 +34,7 @@
 extern "C" {
 #endif
 
-#define LUADART_ABI_VERSION 1
+#define LUADART_ABI_VERSION 2
 
 typedef struct lua_State lua_State;
 
@@ -115,7 +116,7 @@ typedef int32_t (*luadart_host_fn)(int64_t token, lua_State* L,
 // LUADART_ABI_VERSION of the library.
 int32_t luadart_abi_version(void);
 
-// A static NUL-terminated string such as "lua_dart ABI 1; Lua 5.4.9".
+// A static NUL-terminated string such as "lua_dart ABI 2; Lua 5.4.9".
 const char* luadart_build_info(void);
 
 // LUA_REGISTRYINDEX, the pseudo-index of the registry.
@@ -157,6 +158,39 @@ void luadart_interrupt(lua_State* L);
 // Clears an interrupt. Call it on the thread that uses the state, while no
 // Lua code runs.
 void luadart_clear_interrupt(lua_State* L);
+
+// An interrupt that another thread can trigger at any time, also while the
+// state closes or after it closed. luadart_interrupt is only safe while the
+// state is open. A handle has a reference count; it is freed when the count
+// is 0. A handle is attached to at most one state at a time.
+typedef struct luadart_interrupt_handle luadart_interrupt_handle;
+
+// A new handle with one reference, or NULL if no memory. Any thread.
+luadart_interrupt_handle* luadart_interrupt_handle_new(void);
+
+// Adds a reference. Any thread.
+void luadart_interrupt_handle_retain(luadart_interrupt_handle* h);
+
+// Removes a reference; frees the handle at 0. Any thread. NULL does nothing.
+void luadart_interrupt_handle_release(luadart_interrupt_handle* h);
+
+// Interrupts the attached state (luadart_interrupt), and every state that
+// the handle is attached to later. Any thread.
+void luadart_interrupt_handle_trigger(luadart_interrupt_handle* h);
+
+// 1 if the handle was triggered, else 0. Any thread.
+int32_t luadart_interrupt_handle_triggered(luadart_interrupt_handle* h);
+
+// Attaches the handle to the state. Takes over one reference of the caller,
+// also on failure. LUADART_ERRARG if the state has a handle, or the handle
+// has a state. If the handle was triggered, interrupts the state at once.
+// luadart_close detaches the handle.
+int32_t luadart_attach_interrupt_handle(lua_State* L,
+                                        luadart_interrupt_handle* h);
+
+// Detaches the handle of the state and releases its reference. Nothing if
+// the state has no handle.
+void luadart_detach_interrupt_handle(lua_State* L);
 
 // lua_gc for LUA_GCSTOP (0), LUA_GCRESTART (1), LUA_GCCOLLECT (2),
 // LUA_GCCOUNT (3), LUA_GCCOUNTB (4), LUA_GCSTEP (5) and LUA_GCISRUNNING (9).

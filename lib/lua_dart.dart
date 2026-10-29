@@ -14,5 +14,6 @@
 /// ```
 library;
 
-export 'src/lua_state.dart' show LuaInterrupter, LuaRaise, LuaState;
+export 'src/lua_state.dart'
+    show LuaInterruptHandle, LuaRaise, LuaState, SharedLuaInterruptHandle;
 export 'src/types.dart';

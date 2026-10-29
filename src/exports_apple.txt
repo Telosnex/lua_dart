@@ -2,6 +2,7 @@ _luadart_abi_version
 _luadart_absindex
 _luadart_argerror
 _luadart_arith
+_luadart_attach_interrupt_handle
 _luadart_build_info
 _luadart_checkstack
 _luadart_clear_interrupt
@@ -11,6 +12,7 @@ _luadart_compare
 _luadart_concat
 _luadart_copy
 _luadart_createtable
+_luadart_detach_interrupt_handle
 _luadart_gc
 _luadart_getfield
 _luadart_getglobal
@@ -19,6 +21,11 @@ _luadart_getmetatable
 _luadart_gettable
 _luadart_gettop
 _luadart_interrupt
+_luadart_interrupt_handle_new
+_luadart_interrupt_handle_release
+_luadart_interrupt_handle_retain
+_luadart_interrupt_handle_trigger
+_luadart_interrupt_handle_triggered
 _luadart_is_host_function
 _luadart_isinteger
 _luadart_isnumber

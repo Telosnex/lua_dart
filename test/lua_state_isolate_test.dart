@@ -9,10 +9,13 @@ import 'package:test/test.dart';
 import 'lua_state_test.dart' show eval, sandboxed;
 
 /// Interrupts while the spawning isolate runs Lua on its own thread.
-Future<void> _interruptLater((LuaInterrupter, SendPort) message) async {
-  final (interrupter, port) = message;
+Future<void> _interruptLater(
+  (SharedLuaInterruptHandle, SendPort) message,
+) async {
+  final (shared, port) = message;
+  final handle = LuaInterruptHandle.receive(shared);
   await Future<void>.delayed(const Duration(milliseconds: 200));
-  interrupter.interrupt();
+  handle.trigger();
   port.send(true);
 }
 
@@ -56,15 +59,28 @@ void main() {
         return 0;
       });
       final ready = ReceivePort();
-      await Isolate.spawn(_interruptLater, (ls.interrupter, ready.sendPort));
+      final handle = LuaInterruptHandle();
+      ls.attachInterruptHandle(handle);
+      await Isolate.spawn(_interruptLater, (handle.share(), ready.sendPort));
       final stopwatch = Stopwatch()..start();
       ls.loadString(code);
       expect(ls.pCall(0, 0, 0), ThreadStatus.luaErrInterrupt);
       expect(stopwatch.elapsed, lessThan(const Duration(seconds: 10)));
       expect(await ready.first, isTrue);
       ls.setTop(0);
+      ls.detachInterruptHandle();
       ls.clearInterrupt();
       expect(eval(ls, 'return coroutine.wrap(function() return 7 end)()'), '7');
     });
   }
+
+  test('a handle triggered after its state closed is safe', () async {
+    final handle = LuaInterruptHandle();
+    final other = sandboxed()..attachInterruptHandle(handle);
+    other.close();
+    final ready = ReceivePort();
+    await Isolate.spawn(_interruptLater, (handle.share(), ready.sendPort));
+    expect(await ready.first, isTrue);
+    expect(handle.triggered, isTrue);
+  });
 }

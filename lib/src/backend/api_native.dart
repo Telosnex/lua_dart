@@ -98,6 +98,16 @@ final _close = NativeFinalizer(
   ).cast(),
 );
 final _free = NativeFinalizer(malloc.nativeFree);
+final _release = NativeFinalizer(
+  Native.addressOf<
+        NativeFunction<Void Function(Pointer<b.luadart_interrupt_handle>)>
+      >(b.luadart_interrupt_handle_release)
+      .cast(),
+);
+
+/// Releases the interrupt handle [h] when [owner] is unreachable.
+void attachRelease(Finalizable owner, int h) =>
+    _release.attach(owner, Pointer.fromAddress(h));
 
 /// Closes the state [l] when [owner] is unreachable, unless detached.
 void attachClose(Finalizable owner, int l) =>

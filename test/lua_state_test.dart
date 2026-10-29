@@ -31,7 +31,7 @@ void main() {
   tearDown(() => ls.close());
 
   test('build info names the ABI and the pinned Lua release', () {
-    expect(LuaState.buildInfo, 'lua_dart ABI 1; Lua 5.4.9');
+    expect(LuaState.buildInfo, 'lua_dart ABI 2; Lua 5.4.9');
     expect(eval(ls, 'return _VERSION'), 'Lua 5.4');
   });
 
@@ -507,6 +507,26 @@ void main() {
         eval(ls, 'local x = 0 for i = 1, 100000 do x = x + i end return x'),
         '5000050000',
       );
+    });
+
+    test('a triggered handle stops Lua at once when attached', () {
+      final handle = LuaInterruptHandle()..trigger();
+      expect(handle.triggered, isTrue);
+      ls.attachInterruptHandle(handle);
+      expect(() => eval(ls, 'return 1'), throwsA(isA<LuaError>()));
+      expect(
+        () => ls.attachInterruptHandle(LuaInterruptHandle()),
+        throwsStateError,
+      );
+      ls.detachInterruptHandle();
+      ls.clearInterrupt();
+      expect(eval(ls, 'return 1'), '1');
+      // One handle, one state at a time.
+      final fresh = LuaInterruptHandle();
+      ls.attachInterruptHandle(fresh);
+      final other = sandboxed();
+      addTearDown(other.close);
+      expect(() => other.attachInterruptHandle(fresh), throwsStateError);
     });
 
     test('the memory limit fails allocations and the state recovers', () {

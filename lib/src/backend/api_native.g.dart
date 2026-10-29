@@ -33,6 +33,30 @@ void luadart_interrupt(int l) =>
 void luadart_clear_interrupt(int l) =>
     ffi_b.luadart_clear_interrupt(Pointer.fromAddress(l));
 @pragma('vm:prefer-inline')
+int luadart_interrupt_handle_new() =>
+    ffi_b.luadart_interrupt_handle_new().address;
+@pragma('vm:prefer-inline')
+void luadart_interrupt_handle_retain(int h) =>
+    ffi_b.luadart_interrupt_handle_retain(Pointer.fromAddress(h));
+@pragma('vm:prefer-inline')
+void luadart_interrupt_handle_release(int h) =>
+    ffi_b.luadart_interrupt_handle_release(Pointer.fromAddress(h));
+@pragma('vm:prefer-inline')
+void luadart_interrupt_handle_trigger(int h) =>
+    ffi_b.luadart_interrupt_handle_trigger(Pointer.fromAddress(h));
+@pragma('vm:prefer-inline')
+int luadart_interrupt_handle_triggered(int h) =>
+    ffi_b.luadart_interrupt_handle_triggered(Pointer.fromAddress(h));
+@pragma('vm:prefer-inline')
+int luadart_attach_interrupt_handle(int l, int h) =>
+    ffi_b.luadart_attach_interrupt_handle(
+      Pointer.fromAddress(l),
+      Pointer.fromAddress(h),
+    );
+@pragma('vm:prefer-inline')
+void luadart_detach_interrupt_handle(int l) =>
+    ffi_b.luadart_detach_interrupt_handle(Pointer.fromAddress(l));
+@pragma('vm:prefer-inline')
 int luadart_gc(int l, int what, int arg, int out) => ffi_b.luadart_gc(
   Pointer.fromAddress(l),
   what,

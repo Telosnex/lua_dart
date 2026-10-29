@@ -4,6 +4,7 @@
 #define _POSIX_C_SOURCE 200809L  // nanosleep
 
 #include <pthread.h>
+#include <stdatomic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -55,6 +56,107 @@ static int run_interrupted(lua_State* L, const char* code) {
   return status;
 }
 
+static int32_t host(int64_t token, lua_State* L, int64_t id, int32_t op);
+
+// Triggers the handle after 50 ms.
+static void* trigger_later(void* handle) {
+  struct timespec delay = {0, 50 * 1000 * 1000};
+  nanosleep(&delay, NULL);
+  luadart_interrupt_handle_trigger((luadart_interrupt_handle*)handle);
+  luadart_interrupt_handle_release((luadart_interrupt_handle*)handle);
+  return NULL;
+}
+
+// Triggers handles until *stop, as fast as it can.
+typedef struct {
+  _Atomic(luadart_interrupt_handle*) current;
+  atomic_int stop;
+  long triggers;
+} race_args;
+
+static void* trigger_loop(void* p) {
+  race_args* a = (race_args*)p;
+  unsigned seed = 1;
+  luadart_interrupt_handle* last = NULL;
+  while (!atomic_load(&a->stop)) {
+    luadart_interrupt_handle* h = atomic_load(&a->current);
+    if (h == NULL || h == last) continue;
+    // Wait 0 to about 100 microseconds, so the trigger lands before, during
+    // or after the run, or during the close.
+    seed = seed * 1103515245u + 12345u;
+    for (volatile unsigned spin = (seed >> 8) % 20000; spin > 0; spin--) {
+    }
+    luadart_interrupt_handle_trigger(h);
+    last = h;
+    a->triggers++;
+  }
+  return NULL;
+}
+
+static void handle_tests(void) {
+  // Triggered before attach: the first instruction fails.
+  {
+    lua_State* L = luadart_new_state(0, host, 1);
+    luadart_interrupt_handle* h = luadart_interrupt_handle_new();
+    luadart_interrupt_handle_trigger(h);
+    CHECK(luadart_interrupt_handle_triggered(h) == 1);
+    luadart_interrupt_handle_retain(h);
+    CHECK(luadart_attach_interrupt_handle(L, h) == LUADART_OK);
+    CHECK(run(L, "local x = 1") == LUADART_ERRINTERRUPT);
+    // A second handle is refused, and its reference is taken.
+    luadart_interrupt_handle* other = luadart_interrupt_handle_new();
+    CHECK(luadart_attach_interrupt_handle(L, other) == LUADART_ERRARG);
+    luadart_close(L);  // detaches h
+    // h outlives the state.
+    luadart_interrupt_handle_trigger(h);
+    luadart_interrupt_handle_release(h);
+  }
+  // Triggered from another thread during a run.
+  {
+    lua_State* L = luadart_new_state(0, host, 1);
+    luadart_open_libs(L, LUADART_LIB_ALL & ~(LUADART_LIB_PACKAGE |
+                                             LUADART_LIB_IO |
+                                             LUADART_LIB_DEBUG),
+                      LUADART_OPEN_SANDBOX);
+    luadart_interrupt_handle* h = luadart_interrupt_handle_new();
+    luadart_interrupt_handle_retain(h);
+    CHECK(luadart_attach_interrupt_handle(L, h) == LUADART_OK);
+    pthread_t thread;
+    pthread_create(&thread, NULL, trigger_later, h);  // takes a reference
+    CHECK(run(L, "coroutine.wrap(function() while true do end end)()") ==
+          LUADART_ERRINTERRUPT);
+    pthread_join(thread, NULL);
+    luadart_close(L);
+  }
+  // I9: triggers race with attach, runs and close of many states.
+  {
+    race_args a = {0};
+    pthread_t thread;
+    pthread_create(&thread, NULL, trigger_loop, &a);
+    int interrupted = 0;
+    // The loop thread can hold any handle it read: free them after it stops.
+    static luadart_interrupt_handle* handles[2000];
+    for (int i = 0; i < 2000; i++) {
+      luadart_interrupt_handle* h = luadart_interrupt_handle_new();
+      handles[i] = h;
+      atomic_store(&a.current, h);  // the loop thread triggers it
+      lua_State* L = luadart_new_state(0, host, 1);
+      luadart_interrupt_handle_retain(h);
+      luadart_attach_interrupt_handle(L, h);
+      int status = run(L, "local x = 0 for i = 1, 1000 do x = x + i end");
+      if (status == LUADART_ERRINTERRUPT) interrupted++;
+      CHECK(status == LUADART_OK || status == LUADART_ERRINTERRUPT);
+      luadart_close(L);
+    }
+    atomic_store(&a.stop, 1);
+    pthread_join(thread, NULL);
+    for (int i = 0; i < 2000; i++) luadart_interrupt_handle_release(handles[i]);
+    CHECK(interrupted > 0 && interrupted < 2000);
+    fprintf(stderr, "handle race: %d of 2000 runs interrupted, %ld triggers\n",
+            interrupted, a.triggers);
+  }
+}
+
 static int released = 0;
 
 // Function 1 adds two integers. Function 2 fails with its argument.
@@ -84,7 +186,7 @@ static int32_t host(int64_t token, lua_State* L, int64_t id, int32_t op) {
 
 int main(void) {
   CHECK(luadart_abi_version() == LUADART_ABI_VERSION);
-  CHECK(strstr(luadart_build_info(), "lua_dart ABI 1; Lua 5.4.9") != NULL);
+  CHECK(strstr(luadart_build_info(), "lua_dart ABI 2; Lua 5.4.9") != NULL);
 
   lua_State* L = luadart_new_state(0, host, 42);
   CHECK(L != NULL);
@@ -302,6 +404,7 @@ int main(void) {
     fprintf(stderr, "%d failures\n", failures);
     return 1;
   }
+  handle_tests();
   printf("lua_dart smoke test passed\n");
   return 0;
 }

@@ -65,7 +65,7 @@ enum ThreadStatus {
   /// The stack cannot grow. No error object is pushed.
   luaErrStack(101),
 
-  /// [LuaState.interrupt] or [LuaInterrupter.interrupt] was called.
+  /// [LuaState.interrupt] or [LuaInterruptHandle.trigger] was called.
   luaErrInterrupt(103);
 
   const ThreadStatus(this.code);

@@ -370,7 +370,8 @@ if ! diff -u "$expected_exports" "$build_dir/actual_exports.txt"; then
   exit 1
 fi
 
-strings "$artifact" | grep "lua_dart ABI 1; Lua $LUA_VERSION" >/dev/null || {
+abi="$(sed -n 's/^#define LUADART_ABI_VERSION \([0-9]*\)$/\1/p' "$root/src/lua_dart.h")"
+strings "$artifact" | grep "lua_dart ABI $abi; Lua $LUA_VERSION" >/dev/null || {
   echo 'The build-info string is missing or unexpected.' >&2
   exit 1
 }

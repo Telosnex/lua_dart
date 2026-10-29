@@ -11,7 +11,7 @@ import 'dart:ffi' as ffi;
 @ffi.Native<ffi.Int32 Function()>(isLeaf: true)
 external int luadart_abi_version();
 
-/// A static NUL-terminated string such as "lua_dart ABI 1; Lua 5.4.9".
+/// A static NUL-terminated string such as "lua_dart ABI 2; Lua 5.4.9".
 @ffi.Native<ffi.Pointer<ffi.Char> Function()>()
 external ffi.Pointer<ffi.Char> luadart_build_info();
 
@@ -65,6 +65,63 @@ external void luadart_interrupt(ffi.Pointer<lua_State> L);
 /// Lua code runs.
 @ffi.Native<ffi.Void Function(ffi.Pointer<lua_State>)>(isLeaf: true)
 external void luadart_clear_interrupt(ffi.Pointer<lua_State> L);
+
+/// A new handle with one reference, or NULL if no memory. Any thread.
+@ffi.Native<ffi.Pointer<luadart_interrupt_handle> Function()>(isLeaf: true)
+external ffi.Pointer<luadart_interrupt_handle> luadart_interrupt_handle_new();
+
+/// Adds a reference. Any thread.
+@ffi.Native<ffi.Void Function(ffi.Pointer<luadart_interrupt_handle>)>(
+  isLeaf: true,
+)
+external void luadart_interrupt_handle_retain(
+  ffi.Pointer<luadart_interrupt_handle> h,
+);
+
+/// Removes a reference; frees the handle at 0. Any thread. NULL does nothing.
+@ffi.Native<ffi.Void Function(ffi.Pointer<luadart_interrupt_handle>)>(
+  isLeaf: true,
+)
+external void luadart_interrupt_handle_release(
+  ffi.Pointer<luadart_interrupt_handle> h,
+);
+
+/// Interrupts the attached state (luadart_interrupt), and every state that
+/// the handle is attached to later. Any thread.
+@ffi.Native<ffi.Void Function(ffi.Pointer<luadart_interrupt_handle>)>(
+  isLeaf: true,
+)
+external void luadart_interrupt_handle_trigger(
+  ffi.Pointer<luadart_interrupt_handle> h,
+);
+
+/// 1 if the handle was triggered, else 0. Any thread.
+@ffi.Native<ffi.Int32 Function(ffi.Pointer<luadart_interrupt_handle>)>(
+  isLeaf: true,
+)
+external int luadart_interrupt_handle_triggered(
+  ffi.Pointer<luadart_interrupt_handle> h,
+);
+
+/// Attaches the handle to the state. Takes over one reference of the caller,
+/// also on failure. LUADART_ERRARG if the state has a handle, or the handle
+/// has a state. If the handle was triggered, interrupts the state at once.
+/// luadart_close detaches the handle.
+@ffi.Native<
+  ffi.Int32 Function(
+    ffi.Pointer<lua_State>,
+    ffi.Pointer<luadart_interrupt_handle>,
+  )
+>(isLeaf: true)
+external int luadart_attach_interrupt_handle(
+  ffi.Pointer<lua_State> L,
+  ffi.Pointer<luadart_interrupt_handle> h,
+);
+
+/// Detaches the handle of the state and releases its reference. Nothing if
+/// the state has no handle.
+@ffi.Native<ffi.Void Function(ffi.Pointer<lua_State>)>(isLeaf: true)
+external void luadart_detach_interrupt_handle(ffi.Pointer<lua_State> L);
 
 /// lua_gc for LUA_GCSTOP (0), LUA_GCRESTART (1), LUA_GCCOLLECT (2),
 /// LUA_GCCOUNT (3), LUA_GCCOUNTB (4), LUA_GCSTEP (5) and LUA_GCISRUNNING (9).
@@ -566,7 +623,9 @@ typedef Dartluadart_host_fnFunction =
 typedef luadart_host_fn =
     ffi.Pointer<ffi.NativeFunction<luadart_host_fnFunction>>;
 
-const int LUADART_ABI_VERSION = 1;
+final class luadart_interrupt_handle extends ffi.Opaque {}
+
+const int LUADART_ABI_VERSION = 2;
 
 const int LUADART_OK = 0;
 

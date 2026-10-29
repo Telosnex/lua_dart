@@ -35,6 +35,20 @@ extension type LuaDartExports._(JSObject _) implements JSObject {
   external void luadart_interrupt(JSNumber l);
   @JS('_luadart_clear_interrupt')
   external void luadart_clear_interrupt(JSNumber l);
+  @JS('_luadart_interrupt_handle_new')
+  external JSNumber luadart_interrupt_handle_new();
+  @JS('_luadart_interrupt_handle_retain')
+  external void luadart_interrupt_handle_retain(JSNumber h);
+  @JS('_luadart_interrupt_handle_release')
+  external void luadart_interrupt_handle_release(JSNumber h);
+  @JS('_luadart_interrupt_handle_trigger')
+  external void luadart_interrupt_handle_trigger(JSNumber h);
+  @JS('_luadart_interrupt_handle_triggered')
+  external JSNumber luadart_interrupt_handle_triggered(JSNumber h);
+  @JS('_luadart_attach_interrupt_handle')
+  external JSNumber luadart_attach_interrupt_handle(JSNumber l, JSNumber h);
+  @JS('_luadart_detach_interrupt_handle')
+  external void luadart_detach_interrupt_handle(JSNumber l);
   @JS('_luadart_gc')
   external JSNumber luadart_gc(
     JSNumber l,
@@ -249,6 +263,20 @@ int luadart_memory_used(int l) =>
     fromBigInt(exports.luadart_memory_used(l.toJS));
 void luadart_interrupt(int l) => exports.luadart_interrupt(l.toJS);
 void luadart_clear_interrupt(int l) => exports.luadart_clear_interrupt(l.toJS);
+int luadart_interrupt_handle_new() =>
+    exports.luadart_interrupt_handle_new().toDartInt;
+void luadart_interrupt_handle_retain(int h) =>
+    exports.luadart_interrupt_handle_retain(h.toJS);
+void luadart_interrupt_handle_release(int h) =>
+    exports.luadart_interrupt_handle_release(h.toJS);
+void luadart_interrupt_handle_trigger(int h) =>
+    exports.luadart_interrupt_handle_trigger(h.toJS);
+int luadart_interrupt_handle_triggered(int h) =>
+    exports.luadart_interrupt_handle_triggered(h.toJS).toDartInt;
+int luadart_attach_interrupt_handle(int l, int h) =>
+    exports.luadart_attach_interrupt_handle(l.toJS, h.toJS).toDartInt;
+void luadart_detach_interrupt_handle(int l) =>
+    exports.luadart_detach_interrupt_handle(l.toJS);
 int luadart_gc(int l, int what, int arg, int out) =>
     exports.luadart_gc(l.toJS, what.toJS, arg.toJS, out.toJS).toDartInt;
 int luadart_gettop(int l) => exports.luadart_gettop(l.toJS).toDartInt;

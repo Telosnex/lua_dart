@@ -4,6 +4,7 @@ LUA_DART_1 {
     luadart_absindex;
     luadart_argerror;
     luadart_arith;
+    luadart_attach_interrupt_handle;
     luadart_build_info;
     luadart_checkstack;
     luadart_clear_interrupt;
@@ -13,6 +14,7 @@ LUA_DART_1 {
     luadart_concat;
     luadart_copy;
     luadart_createtable;
+    luadart_detach_interrupt_handle;
     luadart_gc;
     luadart_getfield;
     luadart_getglobal;
@@ -21,6 +23,11 @@ LUA_DART_1 {
     luadart_gettable;
     luadart_gettop;
     luadart_interrupt;
+    luadart_interrupt_handle_new;
+    luadart_interrupt_handle_release;
+    luadart_interrupt_handle_retain;
+    luadart_interrupt_handle_trigger;
+    luadart_interrupt_handle_triggered;
     luadart_is_host_function;
     luadart_isinteger;
     luadart_isnumber;

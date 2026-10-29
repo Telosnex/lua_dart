@@ -27,8 +27,16 @@
 #define LUADART_BUILD_INFO \
   "lua_dart ABI " LUADART_STR(LUADART_ABI_VERSION) "; " LUA_RELEASE
 
+struct luadart_interrupt_handle {
+  atomic_flag lock;  // guards pending and state
+  atomic_int refs;
+  int pending;       // luadart_interrupt_handle_trigger was called
+  lua_State* state;  // the attached state, or NULL
+};
+
 typedef struct luadart_vm {
   lua_State* main;
+  luadart_interrupt_handle* handle;  // attached, or NULL
   luadart_host_fn host;
   int64_t host_token;
   uint64_t mem_used;
@@ -702,6 +710,8 @@ void luadart_close(lua_State* L) {
   if (L == NULL) return;
   luadart_vm* vm = vm_of(L);
   lua_State* main = vm->main;
+  // After this, a trigger of the handle does not touch the state.
+  luadart_detach_interrupt_handle(main);
   vm->host = NULL;
   // Lua code of finalizers fails at its first instruction.
   atomic_store(&vm->trap, -1);
@@ -741,6 +751,84 @@ void luadart_interrupt(lua_State* L) {
   if (!atomic_compare_exchange_strong(&vm->trap, &expected, 1)) return;
   lua_sethook(atomic_load(&vm->active), signal_hook, LUA_MASKCOUNT, 1);
   atomic_store(&vm->trap, -1);
+}
+
+// --- Interrupt handles --------------------------------------------------------
+//
+// A handle outlives the states it is attached to, so another thread can
+// trigger it at any time. The lock makes a trigger and a detach exclusive: a
+// trigger never sees a state that is closing.
+
+static void handle_lock(luadart_interrupt_handle* h) {
+  while (atomic_flag_test_and_set_explicit(&h->lock, memory_order_acquire)) {
+  }
+}
+
+static void handle_unlock(luadart_interrupt_handle* h) {
+  atomic_flag_clear_explicit(&h->lock, memory_order_release);
+}
+
+luadart_interrupt_handle* luadart_interrupt_handle_new(void) {
+  luadart_interrupt_handle* h = malloc(sizeof *h);
+  if (h == NULL) return NULL;
+  atomic_flag_clear(&h->lock);
+  atomic_init(&h->refs, 1);
+  h->pending = 0;
+  h->state = NULL;
+  return h;
+}
+
+void luadart_interrupt_handle_retain(luadart_interrupt_handle* h) {
+  atomic_fetch_add(&h->refs, 1);
+}
+
+void luadart_interrupt_handle_release(luadart_interrupt_handle* h) {
+  if (h != NULL && atomic_fetch_sub(&h->refs, 1) == 1) free(h);
+}
+
+void luadart_interrupt_handle_trigger(luadart_interrupt_handle* h) {
+  handle_lock(h);
+  h->pending = 1;
+  if (h->state != NULL) luadart_interrupt(h->state);
+  handle_unlock(h);
+}
+
+int32_t luadart_interrupt_handle_triggered(luadart_interrupt_handle* h) {
+  handle_lock(h);
+  int pending = h->pending;
+  handle_unlock(h);
+  return pending;
+}
+
+int32_t luadart_attach_interrupt_handle(lua_State* L,
+                                        luadart_interrupt_handle* h) {
+  luadart_vm* vm = vm_of(L);
+  if (vm->handle != NULL) {
+    luadart_interrupt_handle_release(h);
+    return LUADART_ERRARG;
+  }
+  handle_lock(h);
+  if (h->state != NULL) {
+    handle_unlock(h);
+    luadart_interrupt_handle_release(h);
+    return LUADART_ERRARG;
+  }
+  h->state = vm->main;
+  if (h->pending) luadart_interrupt(vm->main);
+  handle_unlock(h);
+  vm->handle = h;
+  return LUADART_OK;
+}
+
+void luadart_detach_interrupt_handle(lua_State* L) {
+  luadart_vm* vm = vm_of(L);
+  luadart_interrupt_handle* h = vm->handle;
+  if (h == NULL) return;
+  handle_lock(h);
+  h->state = NULL;
+  handle_unlock(h);
+  vm->handle = NULL;
+  luadart_interrupt_handle_release(h);
 }
 
 void luadart_clear_interrupt(lua_State* L) {

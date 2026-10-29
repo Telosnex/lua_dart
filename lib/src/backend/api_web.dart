@@ -120,6 +120,13 @@ int hostFunction(int Function(int token, int l, int id, int op) dispatch) {
 final _close = Finalizer<int>((l) {
   if (moduleLoaded) exports.luadart_close(l.toJS);
 });
+final _release = Finalizer<int>((h) {
+  if (moduleLoaded) exports.luadart_interrupt_handle_release(h.toJS);
+});
+
+/// Releases the interrupt handle [h] when [owner] is unreachable.
+void attachRelease(Finalizable owner, int h) => _release.attach(owner, h);
+
 final _free = Finalizer<int>((address) {
   if (moduleLoaded) memFree(address);
 });
