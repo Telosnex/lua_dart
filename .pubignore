@@ -1,0 +1,4 @@
+# Benchmarks: a separate package (test/perf/pubspec.yaml) that needs
+# lua_dardo_plus next to lua_dart.
+test/perf/
+build/

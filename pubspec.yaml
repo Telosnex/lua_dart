@@ -4,9 +4,9 @@ description: >-
   the style of the Lua C API: dart:ffi on native platforms, WebAssembly on
   the web. Memory limits, interrupts from another isolate, text-only chunk
   loading.
+version: 0.1.0
 repository: https://github.com/Telosnex/lua_dart
-version: 0.1.0-dev
-publish_to: none
+issue_tracker: https://github.com/Telosnex/lua_dart/issues
 
 environment:
   sdk: ^3.12.2
