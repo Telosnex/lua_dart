@@ -579,6 +579,18 @@ final class LuaState implements Finalizable {
     throw LuaError(message);
   }
 
+  /// luaL_where: the position of the function at [level] of the call
+  /// stack, as "chunkname:line: ". Level 1 is the function that called the
+  /// running host function. The empty string when that level does not exist
+  /// or is not Lua code. A host function used as a message handler (xpcall)
+  /// can collect a traceback with it, without the debug library.
+  String where(int level) {
+    _check(luadart_where(_p, level));
+    final position = toStr(-1) ?? '';
+    pop(1);
+    return position;
+  }
+
   /// Raises [message] as a Lua error, with the position of the calling Lua
   /// code in front, as luaL_error does.
   Never error2(String message) {

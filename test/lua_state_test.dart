@@ -279,6 +279,33 @@ void main() {
   });
 
   group('host functions', () {
+    test('where gives the position of each Lua frame', () {
+      final positions = <String>[];
+      ls.pushDartFunction((ls) {
+        for (var level = 1; level <= 6; level++) {
+          positions.add(ls.where(level));
+        }
+        return 0;
+      });
+      ls.setGlobal('probe');
+      expect(
+        ls.doString(
+          'local function inner()\n  probe()\nend\n'
+          'local function outer()\n  inner()\n  return 1\nend\nouter()',
+          chunkName: '=mod',
+        ),
+        isTrue,
+      );
+      // inner (line 2), outer (line 5), the chunk (line 8), then nothing.
+      expect(positions.take(4), ['mod:2: ', 'mod:5: ', 'mod:8: ', '']);
+      expect(ls.getTop(), 0);
+    });
+
+    test('where outside a host function gives the empty string', () {
+      expect(ls.where(1), '');
+      expect(ls.getTop(), 0);
+    });
+
     test('arguments, results and closures over Dart state', () {
       var calls = 0;
       ls.register('add', (ls) {
