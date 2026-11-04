@@ -1,0 +1,7 @@
+# Upstream sources, checked daily by the Upstream watch workflow
+# (telosnex_ci_tools, lib/src/upstream.dart). Set `seen` to skip an update.
+sources:
+  - name: Lua
+    tags: https://github.com/lua/lua.git
+    pin: {file: native_artifacts/sources.json, pattern: 'lua-(\d+\.\d+\.\d+)\.tar\.gz'}
+    alert: patch
