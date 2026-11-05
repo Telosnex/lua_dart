@@ -1,4 +1,4 @@
-/// A Lua 5.4 parser to an AST, for static analysis: it never runs code.
+/// A Lua 5.5 parser to an AST, for static analysis: it never runs code.
 ///
 /// It accepts the chunks that LuaState compiles
 /// (test/parser_conformance_test.dart). From LuaDardo (Apache 2.0); see

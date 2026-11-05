@@ -416,10 +416,18 @@ static void dec_array(jdec* d) {
     dec_unexpected(d);
   }
   if (holes) {
-    // A table with an array part of n slots, so #t is n, as when a host
-    // creates the table with its length and sets each element.
+    // A table with an array part of n slots, and #t n unless the last
+    // element is null, as in Lua 5.4. Lua 5.5 starts the length search at a
+    // hint in the table, n / 2 for a new table, so it would find the border
+    // below the first hole. With every slot set, lua_rawlen sets the hint to
+    // n; then the holes are set.
     if (n > INT32_MAX) dec_error(d, "array too long");
     lua_createtable(L, (int)n, 0);
+    for (lua_Integer i = 1; i <= n; i++) {
+      lua_pushboolean(L, 1);
+      lua_rawseti(L, -2, i);
+    }
+    (void)lua_rawlen(L, -1);
     for (lua_Integer i = 1; i <= n; i++) {
       lua_rawgeti(L, -2, i);
       lua_rawseti(L, -2, i);

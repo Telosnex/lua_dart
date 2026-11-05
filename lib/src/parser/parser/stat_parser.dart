@@ -29,9 +29,15 @@ class StatParser {
         | for namelist in explist do block end
         | function funcname funcbody
         | local function Name funcbody
-        | local namelist [‘=’ explist]
+        | global function Name funcbody
+        | local attnamelist [‘=’ explist]
+        | global attnamelist [‘=’ explist]
+        | global [attrib] ‘*’
         | varlist ‘=’ explist
         | functioncall
+
+    `global` is a keyword only where it starts a declaration, as in Lua 5.5
+    with LUA_COMPAT_GLOBAL (its default): elsewhere it is a name.
     */
   static Stat parseStat(Lexer lexer) {
     switch (lexer.LookAhead()) {
@@ -57,9 +63,73 @@ class StatParser {
         return parseFuncDefStat(lexer);
       case TokenKind.TOKEN_KW_LOCAL:
         return parseLocalAssignOrFuncDefStat(lexer);
+      case TokenKind.TOKEN_IDENTIFIER
+          when lexer.cachedNextToken!.value == 'global':
+        return parseGlobalOrNameStat(lexer);
       default:
         return parseAssignOrFuncCallStat(lexer);
     }
+  }
+
+  // A statement that starts with the name `global`: a declaration if the
+  // next token is ‘<’, a Name, ‘*’ or `function`, as in statement() of
+  // lparser.c. Else `global` is a name.
+  static Stat parseGlobalOrNameStat(Lexer lexer) {
+    final id = lexer.nextIdentifier(); // global
+    switch (lexer.LookAhead()) {
+      case TokenKind.TOKEN_KW_FUNCTION:
+        lexer.nextToken(); // function
+        final name = lexer.nextIdentifier().value;
+        return GlobalFuncDefStat(name, ExpParser.parseFuncDefExp(lexer));
+      case TokenKind.TOKEN_OP_LT:
+      case TokenKind.TOKEN_IDENTIFIER:
+      case TokenKind.TOKEN_OP_MUL:
+        return finishGlobalVarDeclStat(lexer, id.line);
+      default:
+        final exp = PrefixExpParser.finishPrefixExp(
+          lexer,
+          NameExp(id.line, id.value),
+        );
+        if (exp is FuncCallExp) return FuncCallStat(exp);
+        return parseAssignStat(lexer, exp);
+    }
+  }
+
+  // global [attrib] ‘*’
+  // global attnamelist [‘=’ explist]
+  static Stat finishGlobalVarDeclStat(Lexer lexer, int line) {
+    final defAttrib = _parseGlobalAttrib(lexer, null);
+    if (lexer.LookAhead() == TokenKind.TOKEN_OP_MUL) {
+      lexer.nextToken(); // *
+      return GlobalCollectiveDeclStat(line, defAttrib);
+    }
+    final nameList = <String>[];
+    final attribs = <LocalAttrib?>[];
+    do {
+      if (nameList.isNotEmpty) lexer.nextToken(); // ,
+      nameList.add(lexer.nextIdentifier().value);
+      attribs.add(_parseGlobalAttrib(lexer, defAttrib));
+    } while (lexer.LookAhead() == TokenKind.TOKEN_SEP_COMMA);
+    List<Exp> expList = const <Exp>[];
+    if (lexer.LookAhead() == TokenKind.TOKEN_OP_ASSIGN) {
+      lexer.nextToken(); // =
+      expList = ExpParser.parseExpList(lexer);
+    }
+    return GlobalVarDeclStat(
+      lexer.line,
+      nameList,
+      expList,
+      attribs.any((a) => a != null) ? attribs : null,
+    );
+  }
+
+  // The attribute of a global: only <const> (getglobalattribute of lparser.c).
+  static LocalAttrib? _parseGlobalAttrib(Lexer lexer, LocalAttrib? fallback) {
+    final attrib = _parseAttrib(lexer) ?? fallback;
+    if (attrib == LocalAttrib.close) {
+      lexer.error('global variables cannot be to-be-closed');
+    }
+    return attrib;
   }
 
   // ;
@@ -269,19 +339,21 @@ class StatParser {
   }
 
   // local attnamelist [‘=’ explist]
-  // attnamelist ::= Name attrib {‘,’ Name attrib}
-  // attrib ::= [‘<’ Name ‘>’]
+  // attnamelist ::= [attrib] Name [attrib] {‘,’ Name [attrib]}
+  // attrib ::= ‘<’ Name ‘>’
+  // An attribute before the names is the default of every name (Lua 5.5).
   static LocalVarDeclStat finishLocalVarDeclStat(Lexer lexer) {
+    final defAttrib = _parseAttrib(lexer);
     String name0 = lexer.nextIdentifier().value; // local Name
     final List<String> nameList = <String>[name0];
     List<LocalAttrib?>? attribList;
-    var attrib = _parseAttrib(lexer);
+    var attrib = _parseAttrib(lexer) ?? defAttrib;
     if (attrib != null) attribList = <LocalAttrib?>[attrib];
     var closes = attrib == LocalAttrib.close ? 1 : 0;
     while (lexer.LookAhead() == TokenKind.TOKEN_SEP_COMMA) {
       lexer.nextToken(); // ,
       nameList.add(lexer.nextIdentifier().value); // Name
-      attrib = _parseAttrib(lexer);
+      attrib = _parseAttrib(lexer) ?? defAttrib;
       if (attrib != null) {
         attribList ??= List<LocalAttrib?>.filled(
           nameList.length - 1,
@@ -312,7 +384,7 @@ class StatParser {
     );
   }
 
-  // attrib ::= [‘<’ Name ‘>’], as in lparser.c of Lua 5.4.
+  // attrib ::= [‘<’ Name ‘>’], as getvarattribute of lparser.c.
   static LocalAttrib? _parseAttrib(Lexer lexer) {
     if (lexer.LookAhead() != TokenKind.TOKEN_OP_LT) return null;
     lexer.nextToken(); // <

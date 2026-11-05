@@ -8,7 +8,7 @@ import 'types.dart';
 
 /// A Lua state, or one thread of it.
 ///
-/// The methods follow the Lua 5.4 C API and the names of
+/// The methods follow the Lua 5.5 C API and the names of
 /// package:lua_dardo_plus. Stack indices are checked: a bad index throws a
 /// [LuaError] with [ThreadStatus.luaErrArg] instead of corrupting memory.
 ///
@@ -51,7 +51,7 @@ final class LuaState implements Finalizable {
   final int _l;
 
   /// The ABI version and the Lua release of the native library, for example
-  /// `lua_dart ABI 1; Lua 5.4.9`.
+  /// `lua_dart ABI 3; Lua 5.5.1`.
   static String get buildInfo => readCString(luadart_build_info());
 
   /// True for the main thread of the state.

@@ -69,7 +69,7 @@ rm -rf "$build_dir"
 mkdir -p "$build_dir/lua"
 tar -xzf "$tarball" -C "$build_dir/lua" --strip-components 1
 lua_source="$build_dir/lua/src"
-grep -Eq "^#define LUA_VERSION_RELEASE[[:space:]]+\"${LUA_VERSION##*.}\"" "$lua_source/lua.h" || {
+grep -Eq "^#define LUA_VERSION_RELEASE_N[[:space:]]+${LUA_VERSION##*.}\$" "$lua_source/lua.h" || {
   echo "The tarball is not Lua $LUA_VERSION." >&2
   exit 1
 }

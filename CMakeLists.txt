@@ -39,11 +39,12 @@ else()
 endif()
 target_include_directories(lua_dart PRIVATE "${LUADART_LUA_SOURCE}" src)
 
-# The definitions of the reference Makefile: 5.3 compatibility, and POSIX
-# functions for io and os where they exist. No LUA_USE_DLOPEN: `require`
+# The definitions of the reference Makefile, and POSIX functions for io and
+# os where they exist. LUA_COMPAT_MATHLIB keeps math.pow, math.log10 and the
+# others that Lua 5.4 had with LUA_COMPAT_5_3. No LUA_USE_DLOPEN: `require`
 # cannot load C libraries.
 # src/luadart_user.h makes Lua deterministic (fixed hash seed and pivot).
-target_compile_definitions(lua_dart PRIVATE LUA_COMPAT_5_3
+target_compile_definitions(lua_dart PRIVATE LUA_COMPAT_MATHLIB
   LUA_USER_H="luadart_user.h")
 if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
   # iOS has no system(): os.execute fails.

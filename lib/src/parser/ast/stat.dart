@@ -20,7 +20,10 @@ stat ::=  ‘;’ |
 	 for namelist in explist do block end |
 	 function funcname funcbody |
 	 local function Name funcbody |
-	 local namelist [‘=’ explist]
+	 global function Name funcbody |
+	 local attnamelist [‘=’ explist] |
+	 global attnamelist [‘=’ explist] |
+	 global [attrib] ‘*’
 */
 abstract class Stat extends Node {}
 
@@ -113,8 +116,8 @@ class ForInStat extends Stat {
   });
 }
 
-/// The attribute of a local variable (Lua 5.4): `local x <const>`,
-/// `local f <close>`.
+/// The attribute of a variable: `local x <const>`, `local f <close>`,
+/// `global <const> x`. A global can only be `<const>`.
 enum LocalAttrib { const_, close }
 
 class LocalVarDeclStat extends Stat {
@@ -148,4 +151,44 @@ class LocalFuncDefStat extends Stat {
   FuncDefExp exp;
 
   LocalFuncDefStat(this.name, this.exp);
+}
+
+/// `global namelist [‘=’ explist]` (Lua 5.5): declares the names as
+/// globals, and assigns them if [expList] is not empty. After a `global`
+/// declaration, a free name must be declared.
+class GlobalVarDeclStat extends Stat {
+  List<String> nameList;
+  List<Exp> expList;
+
+  /// The attribute of each name in [nameList], or null if no name has one.
+  /// Only [LocalAttrib.const_].
+  List<LocalAttrib?>? attribList;
+
+  GlobalVarDeclStat(
+    int lastLine,
+    this.nameList,
+    this.expList, [
+    this.attribList,
+  ]) {
+    super.lastLine = lastLine;
+  }
+}
+
+/// `global [attrib] ‘*’` (Lua 5.5): every free name is a global again, with
+/// [attrib] if not null.
+class GlobalCollectiveDeclStat extends Stat {
+  LocalAttrib? attrib;
+
+  GlobalCollectiveDeclStat(int line, this.attrib) {
+    super.line = line;
+  }
+}
+
+/// `global function Name funcbody` (Lua 5.5): declares [name] as a global
+/// and assigns the function to it. [name] is visible in the body.
+class GlobalFuncDefStat extends Stat {
+  String name;
+  FuncDefExp exp;
+
+  GlobalFuncDefStat(this.name, this.exp);
 }

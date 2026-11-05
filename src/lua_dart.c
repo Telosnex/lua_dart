@@ -1,4 +1,4 @@
-// lua_dart: the stable C ABI of src/lua_dart.h over Lua 5.4.
+// lua_dart: the stable C ABI of src/lua_dart.h over Lua 5.5.
 //
 // The one rule that this file exists for: a Lua error never longjmps over a
 // Dart frame. Dart calls the functions below; the functions that can raise
@@ -19,9 +19,17 @@
 #include "lua.h"
 #include "lualib.h"
 
-#if LUA_VERSION_NUM != 504
-#error "lua_dart needs Lua 5.4"
+#if LUA_VERSION_NUM != 505
+#error "lua_dart needs Lua 5.5"
 #endif
+
+// The seed of string hashes, the same in every state, so the order of pairs
+// and next is too. Reference Lua takes it from an address and the time,
+// against hash flooding. A state has a memory limit and an interrupt for that.
+#define LUADART_HASH_SEED 0x2A3C5E71u
+
+// The most results of lua_call and lua_pcall (MAXRESULTS of lstate.h).
+#define LUADART_MAXRESULTS 250
 
 #define LUADART_STR2(x) #x
 #define LUADART_STR(x) LUADART_STR2(x)
@@ -47,7 +55,7 @@ typedef struct luadart_vm {
   _Atomic(lua_State*) active;
   // 0: none; 1: luadart_interrupt is setting the hook; -1: interrupted.
   atomic_int trap;
-  char numbuf[64];
+  char numbuf[LUA_N2SBUFFSZ];
 } luadart_vm;
 
 // Registry keys: addresses of these variables.
@@ -425,7 +433,9 @@ static int p_unref(lua_State* L) {
 
 static int p_gc(lua_State* L) {
   op_args* a = args_of(L);
-  a->out = lua_gc(L, a->n, a->m);
+  // Only LUA_GCSTEP takes an argument, a size_t.
+  a->out = a->n == LUA_GCSTEP ? lua_gc(L, LUA_GCSTEP, (size_t)a->m)
+                              : lua_gc(L, a->n);
   return 0;
 }
 
@@ -522,7 +532,7 @@ static void remove_fields(lua_State* L, int table, const char* const* names) {
 }
 
 // coroutine.resume and coroutine.wrap: auxresume, luaB_coresume,
-// luaB_auxwrap, luaB_cocreate and luaB_cowrap of lcorolib.c of Lua 5.4.9
+// luaB_auxwrap, luaB_cocreate and luaB_cowrap of lcorolib.c of Lua 5.5.1
 // (MIT license, Copyright (C) 1994-2025 Lua.org, PUC-Rio), with lua_resume
 // replaced by resume_tracked, as skynet does.
 
@@ -691,7 +701,7 @@ lua_State* luadart_new_state(uint64_t memory_limit, luadart_host_fn host,
   vm->host = host;
   vm->host_token = host_token;
   atomic_init(&vm->trap, 0);
-  lua_State* L = lua_newstate(l_alloc, vm);
+  lua_State* L = lua_newstate(l_alloc, vm, LUADART_HASH_SEED);
   if (L == NULL) {
     free(vm);
     return NULL;
@@ -847,20 +857,21 @@ void luadart_clear_interrupt(lua_State* L) {
 }
 
 int32_t luadart_gc(lua_State* L, int32_t what, int32_t arg, int32_t* out) {
+  int op;
   switch (what) {
-    case LUA_GCSTOP:
-    case LUA_GCRESTART:
-    case LUA_GCCOLLECT:
-    case LUA_GCCOUNT:
-    case LUA_GCCOUNTB:
-    case LUA_GCSTEP:
-    case LUA_GCISRUNNING:
-      break;
+    case LUADART_GCSTOP: op = LUA_GCSTOP; break;
+    case LUADART_GCRESTART: op = LUA_GCRESTART; break;
+    case LUADART_GCCOLLECT: op = LUA_GCCOLLECT; break;
+    case LUADART_GCCOUNT: op = LUA_GCCOUNT; break;
+    case LUADART_GCCOUNTB: op = LUA_GCCOUNTB; break;
+    case LUADART_GCSTEP: op = LUA_GCSTEP; break;
+    case LUADART_GCISRUNNING: op = LUA_GCISRUNNING; break;
     default:
       return LUADART_ERRARG;
   }
+  if (what == LUADART_GCSTEP && arg < 0) return LUADART_ERRARG;
   op_args a = {0};
-  a.n = what;
+  a.n = op;
   a.m = arg;
   int32_t status = run_protected(L, p_gc, &a, 0, 0, 0);
   if (status == LUADART_OK && out != NULL) *out = a.out;
@@ -977,20 +988,10 @@ const uint8_t* luadart_tolstring(lua_State* L, int32_t idx, uint64_t* len) {
     return (const uint8_t*)s;
   }
   if (type != LUA_TNUMBER) return NULL;
-  // The format of tostringbuff in lobject.c.
-  luadart_vm* vm = vm_of(L);
-  char* buf = vm->numbuf;
-  int n;
-  if (lua_isinteger(L, idx)) {
-    n = lua_integer2str(buf, sizeof(vm->numbuf), lua_tointeger(L, idx));
-  } else {
-    n = lua_number2str(buf, sizeof(vm->numbuf), lua_tonumber(L, idx));
-    if (buf[strspn(buf, "-0123456789")] == '\0') {
-      buf[n++] = lua_getlocaledecpoint();
-      buf[n++] = '0';
-    }
-  }
-  if (len != NULL) *len = (uint64_t)n;
+  // The format of `tostring`; the count includes the NUL.
+  char* buf = vm_of(L)->numbuf;
+  unsigned n = lua_numbertocstring(L, idx, buf);
+  if (len != NULL) *len = (uint64_t)(n - 1);
   return (const uint8_t*)buf;
 }
 
@@ -1328,7 +1329,8 @@ static int traceback_handler(lua_State* L) {
 
 int32_t luadart_pcall(lua_State* L, int32_t nargs, int32_t nresults,
                       int32_t msgh, int32_t flags) {
-  if (nargs < 0 || nresults < LUA_MULTRET || lua_gettop(L) < nargs + 1 ||
+  if (nargs < 0 || nresults < LUA_MULTRET || nresults > LUADART_MAXRESULTS ||
+      lua_gettop(L) < nargs + 1 ||
       (flags & ~LUADART_PCALL_TRACEBACK) != 0 || lua_status(L) != LUA_OK) {
     return LUADART_ERRARG;
   }

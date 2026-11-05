@@ -11,7 +11,7 @@ import 'dart:ffi' as ffi;
 @ffi.Native<ffi.Int32 Function()>(isLeaf: true)
 external int luadart_abi_version();
 
-/// A static NUL-terminated string such as "lua_dart ABI 2; Lua 5.4.9".
+/// A static NUL-terminated string such as "lua_dart ABI 3; Lua 5.5.1".
 @ffi.Native<ffi.Pointer<ffi.Char> Function()>()
 external ffi.Pointer<ffi.Char> luadart_build_info();
 
@@ -123,9 +123,8 @@ external int luadart_attach_interrupt_handle(
 @ffi.Native<ffi.Void Function(ffi.Pointer<lua_State>)>(isLeaf: true)
 external void luadart_detach_interrupt_handle(ffi.Pointer<lua_State> L);
 
-/// lua_gc for LUA_GCSTOP (0), LUA_GCRESTART (1), LUA_GCCOLLECT (2),
-/// LUA_GCCOUNT (3), LUA_GCCOUNTB (4), LUA_GCSTEP (5) and LUA_GCISRUNNING (9).
-/// `*out` gets the result of lua_gc. Returns a status.
+/// lua_gc for a LUADART_GC* operation. `*out` gets the result of lua_gc.
+/// Returns a status.
 @ffi.Native<
   ffi.Int32 Function(
     ffi.Pointer<lua_State>,
@@ -550,8 +549,9 @@ external int luadart_load(
   ffi.Pointer<ffi.Char> name,
 );
 
-/// lua_pcall. `msgh` is 0 or the stack index of a message handler below the
-/// function. `flags`: LUADART_PCALL_TRACEBACK, which needs `msgh` 0.
+/// lua_pcall. `nresults` is LUA_MULTRET (-1) or at most 250. `msgh` is 0 or
+/// the stack index of a message handler below the function. `flags`:
+/// LUADART_PCALL_TRACEBACK, which needs `msgh` 0.
 @ffi.Native<
   ffi.Int32 Function(
     ffi.Pointer<lua_State>,
@@ -625,7 +625,7 @@ typedef luadart_host_fn =
 
 final class luadart_interrupt_handle extends ffi.Opaque {}
 
-const int LUADART_ABI_VERSION = 2;
+const int LUADART_ABI_VERSION = 3;
 
 const int LUADART_OK = 0;
 
@@ -702,3 +702,17 @@ const int LUADART_HOST_RELEASE = 1;
 const int LUADART_HOST_ERROR = -1;
 
 const int LUADART_HOST_ERROR_NO_OBJECT = -2;
+
+const int LUADART_GCSTOP = 0;
+
+const int LUADART_GCRESTART = 1;
+
+const int LUADART_GCCOLLECT = 2;
+
+const int LUADART_GCCOUNT = 3;
+
+const int LUADART_GCCOUNTB = 4;
+
+const int LUADART_GCSTEP = 5;
+
+const int LUADART_GCISRUNNING = 9;

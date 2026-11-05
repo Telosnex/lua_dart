@@ -1,3 +1,17 @@
+## 0.2.0
+
+- Lua 5.5.1, up from 5.4.9. 5.4 gets no more releases. Lua code: `global`
+  declarations, read-only `for` loop variables, named varargs, and floats
+  that print with enough digits to read back. `global` is a keyword only at
+  the start of a declaration (LUA_COMPAT_GLOBAL), so `global` as a name
+  still works. `math.pow`, `math.log10` and the others of LUA_COMPAT_MATHLIB
+  stay. `__le` no longer falls back to `__lt`.
+- ABI 3: `luaRegistryIndex` is the new LUA_REGISTRYINDEX of Lua 5.5, and
+  lua_dart.h has its own LUADART_GC* values. `LuaGcOp.step` takes the size_t
+  of LUA_GCSTEP.
+- `math.random` gets a random seed in every state again; string hashes keep
+  their fixed seed.
+
 ## 0.1.0
 
 - First release on pub.dev: Lua 5.4.9 behind a stable C ABI, native

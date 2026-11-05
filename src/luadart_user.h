@@ -4,13 +4,12 @@
 #ifndef LUADART_USER_H
 #define LUADART_USER_H
 
-// A fixed seed for string hashes, so the order of pairs and next is the same
-// in every state. Reference Lua takes it from addresses and the time, against
-// hash flooding. A state has a memory limit and an interrupt for that.
-#define luai_makeseed(L) ((unsigned int)0x2A3C5E71u)
+// The seed of string hashes is fixed in luadart_new_state (lua_dart.c), so
+// the order of pairs and next is the same in every state. luai_makeseed stays
+// random: since Lua 5.5 it also seeds math.random.
 
-// table.sort chooses no random pivot: reference Lua uses clock and time, so
+// table.sort chooses no random pivot: reference Lua uses luaL_makeseed, so
 // the order of equal elements changes from run to run.
-#define l_randomizePivot() 0u
+#define l_randomizePivot(L) 0u
 
 #endif

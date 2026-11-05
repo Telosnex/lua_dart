@@ -1,4 +1,4 @@
-/// The reference Lua 5.4 (PUC-Rio) behind the stable C ABI of
+/// The reference Lua 5.5 (PUC-Rio) behind the stable C ABI of
 /// src/lua_dart.h.
 ///
 /// ```dart

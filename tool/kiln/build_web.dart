@@ -111,7 +111,7 @@ Future<void> main(List<String> args) async {
     '-I${lua.path}/src',
     '-I$root/src',
     '-std=c11',
-    '-DLUA_COMPAT_5_3',
+    '-DLUA_COMPAT_MATHLIB',
     '-DLUA_USER_H="luadart_user.h"',
     ...flags,
     '--no-entry',

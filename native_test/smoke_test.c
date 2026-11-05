@@ -186,7 +186,7 @@ static int32_t host(int64_t token, lua_State* L, int64_t id, int32_t op) {
 
 int main(void) {
   CHECK(luadart_abi_version() == LUADART_ABI_VERSION);
-  CHECK(strstr(luadart_build_info(), "lua_dart ABI 2; Lua 5.4.9") != NULL);
+  CHECK(strstr(luadart_build_info(), "lua_dart ABI 3; Lua 5.5.1") != NULL);
 
   lua_State* L = luadart_new_state(0, host, 42);
   CHECK(L != NULL);
@@ -201,7 +201,8 @@ int main(void) {
   CHECK(luadart_gettop(L) == 0);
 
   // Arithmetic and number formats.
-  CHECK(run(L, "x = 1 + 2; y = 10 / 4; z = 2^53; w = 3.0") == LUADART_OK);
+  CHECK(run(L, "x = 1 + 2; y = 10 / 4; z = 2^53; w = 3.0; v = 0.1 + 0.2") ==
+        LUADART_OK);
   int32_t type = -9;
   CHECK(luadart_getglobal(L, S("x"), 1, &type) == LUADART_OK);
   CHECK(type == LUADART_TNUMBER && luadart_isinteger(L, -1));
@@ -209,7 +210,10 @@ int main(void) {
   luadart_getglobal(L, S("y"), 1, NULL);
   CHECK(top_is(L, "2.5"));
   luadart_getglobal(L, S("z"), 1, NULL);
-  CHECK(top_is(L, "9.007199254741e+15"));
+  // Lua 5.5: as many digits as reading the number back needs.
+  CHECK(top_is(L, "9007199254740992.0"));
+  luadart_getglobal(L, S("v"), 1, NULL);
+  CHECK(top_is(L, "0.30000000000000004"));
   luadart_getglobal(L, S("w"), 1, NULL);
   CHECK(top_is(L, "3.0"));
   CHECK(luadart_type(L, -1) == LUADART_TNUMBER);  // still a number
@@ -353,7 +357,13 @@ int main(void) {
   luadart_settop(L, 0);
   luadart_set_memory_limit(L, 0);
   int32_t kb = 0;
-  CHECK(luadart_gc(L, 2, 0, &kb) == LUADART_OK);  // LUA_GCCOLLECT
+  CHECK(luadart_gc(L, LUADART_GCCOLLECT, 0, &kb) == LUADART_OK);
+  int32_t running = 0;
+  CHECK(luadart_gc(L, LUADART_GCISRUNNING, 0, &running) == LUADART_OK);
+  CHECK(running == 1);
+  CHECK(luadart_gc(L, LUADART_GCSTEP, 0, NULL) == LUADART_OK);
+  CHECK(luadart_gc(L, LUADART_GCSTEP, -1, NULL) == LUADART_ERRARG);
+  CHECK(luadart_gc(L, 6, 0, NULL) == LUADART_ERRARG);  // not an operation
   CHECK(run(L, "local s = string.rep('x', 1000000)") == LUADART_OK);
 
   // Coroutines from the host.
@@ -382,6 +392,13 @@ int main(void) {
   CHECK(run(L, "add = nil fail = nil broken = nil") == LUADART_OK);
   luadart_gc(L, 2, 0, NULL);
   CHECK(released == before + 3);
+
+  // At most 250 results (MAXRESULTS of Lua 5.5).
+  CHECK(luadart_load(L, S("return 1"), 8, "=r") == LUADART_OK);
+  CHECK(luadart_pcall(L, 0, 251, 0, 0) == LUADART_ERRARG);
+  CHECK(luadart_pcall(L, 0, 250, 0, 0) == LUADART_OK);
+  CHECK(luadart_gettop(L) == 250);
+  luadart_settop(L, 0);
 
   // Traceback.
   const char* deep = "local function f() error('deep') end f()";

@@ -37,6 +37,6 @@ void main() {
     final r = await reply.future.timeout(const Duration(seconds: 20));
     expect(r.error?.toDart, isNull);
     expect(r.status?.toDartInt, 0);
-    expect(r.text?.toDart, 'Lua 5.4');
+    expect(r.text?.toDart, 'Lua 5.5');
   });
 }

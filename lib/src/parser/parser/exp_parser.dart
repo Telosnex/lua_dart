@@ -259,7 +259,7 @@ class ExpParser {
   static FuncDefExp parseFuncDefExp(Lexer lexer) {
     int line = lexer.line; // function
     lexer.nextTokenOfKind(TokenKind.TOKEN_SEP_LPAREN); // (
-    List<String> parList = parseParList(lexer); // [parlist]
+    final (parList, isVararg, varargName) = parseParList(lexer); // [parlist]
     lexer.nextTokenOfKind(TokenKind.TOKEN_SEP_RPAREN); // )
     Block block = BlockParser.parseBlock(lexer); // block
     lexer.nextTokenOfKind(TokenKind.TOKEN_KW_END); // end
@@ -267,7 +267,8 @@ class ExpParser {
 
     FuncDefExp fdExp = FuncDefExp(
       parList: parList,
-      isVararg: parList.remove("..."),
+      isVararg: isVararg,
+      varargName: varargName,
       block: block,
     );
     fdExp.line = line;
@@ -276,17 +277,18 @@ class ExpParser {
   }
 
   // [parlist]
-  // parlist ::= namelist [‘,’ ‘...’] | ‘...’
-  static List<String> parseParList(Lexer lexer) {
+  // parlist ::= namelist [‘,’ varargparam] | varargparam
+  // varargparam ::= ‘...’ [Name]
+  // Returns the names, whether the function is vararg, and the name of a
+  // named vararg parameter.
+  static (List<String>, bool, String?) parseParList(Lexer lexer) {
     List<String> names = <String>[];
 
     switch (lexer.LookAhead()) {
       case TokenKind.TOKEN_SEP_RPAREN:
-        return names;
+        return (names, false, null);
       case TokenKind.TOKEN_VARARG:
-        lexer.nextToken();
-        names.add("...");
-        return names;
+        return (names, true, _finishVarargParam(lexer));
       default:
     }
 
@@ -296,13 +298,18 @@ class ExpParser {
       if (lexer.LookAhead() == TokenKind.TOKEN_IDENTIFIER) {
         names.add(lexer.nextIdentifier().value);
       } else {
-        lexer.nextTokenOfKind(TokenKind.TOKEN_VARARG);
-        names.add("...");
-        break;
+        return (names, true, _finishVarargParam(lexer));
       }
     }
 
-    return names;
+    return (names, false, null);
+  }
+
+  // varargparam ::= ‘...’ [Name]
+  static String? _finishVarargParam(Lexer lexer) {
+    lexer.nextTokenOfKind(TokenKind.TOKEN_VARARG);
+    if (lexer.LookAhead() != TokenKind.TOKEN_IDENTIFIER) return null;
+    return lexer.nextIdentifier().value;
   }
 
   // tableconstructor ::= ‘{’ [fieldlist] ‘}’

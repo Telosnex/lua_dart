@@ -1,4 +1,4 @@
-// lua_dart: a stable C ABI over the reference Lua 5.4 (PUC-Rio).
+// lua_dart: a stable C ABI over the reference Lua 5.5 (PUC-Rio).
 //
 // Rules of this ABI:
 //
@@ -34,7 +34,7 @@
 extern "C" {
 #endif
 
-#define LUADART_ABI_VERSION 2
+#define LUADART_ABI_VERSION 3
 
 typedef struct lua_State lua_State;
 
@@ -123,7 +123,7 @@ typedef int32_t (*luadart_host_fn)(int64_t token, lua_State* L,
 // LUADART_ABI_VERSION of the library.
 int32_t luadart_abi_version(void);
 
-// A static NUL-terminated string such as "lua_dart ABI 2; Lua 5.4.9".
+// A static NUL-terminated string such as "lua_dart ABI 3; Lua 5.5.1".
 const char* luadart_build_info(void);
 
 // LUA_REGISTRYINDEX, the pseudo-index of the registry.
@@ -199,9 +199,18 @@ int32_t luadart_attach_interrupt_handle(lua_State* L,
 // the state has no handle.
 void luadart_detach_interrupt_handle(lua_State* L);
 
-// lua_gc for LUA_GCSTOP (0), LUA_GCRESTART (1), LUA_GCCOLLECT (2),
-// LUA_GCCOUNT (3), LUA_GCCOUNTB (4), LUA_GCSTEP (5) and LUA_GCISRUNNING (9).
-// `*out` gets the result of lua_gc. Returns a status.
+// Operations of luadart_gc. They are lua_gc of the LUA_GC* name; the
+// values are this ABI's, not those of lua.h.
+#define LUADART_GCSTOP 0
+#define LUADART_GCRESTART 1
+#define LUADART_GCCOLLECT 2
+#define LUADART_GCCOUNT 3
+#define LUADART_GCCOUNTB 4
+// `arg` is the size_t of LUA_GCSTEP: 0 runs one basic step.
+#define LUADART_GCSTEP 5
+#define LUADART_GCISRUNNING 9
+// lua_gc for a LUADART_GC* operation. `*out` gets the result of lua_gc.
+// Returns a status.
 int32_t luadart_gc(lua_State* L, int32_t what, int32_t arg, int32_t* out);
 
 // --- Stack -----------------------------------------------------------------
@@ -340,8 +349,9 @@ int32_t luadart_unref(lua_State* L, int32_t idx, int32_t ref);
 int32_t luadart_load(lua_State* L, const uint8_t* chunk, uint64_t len,
                      const char* name);
 
-// lua_pcall. `msgh` is 0 or the stack index of a message handler below the
-// function. `flags`: LUADART_PCALL_TRACEBACK, which needs `msgh` 0.
+// lua_pcall. `nresults` is LUA_MULTRET (-1) or at most 250. `msgh` is 0 or
+// the stack index of a message handler below the function. `flags`:
+// LUADART_PCALL_TRACEBACK, which needs `msgh` 0.
 int32_t luadart_pcall(lua_State* L, int32_t nargs, int32_t nresults,
                       int32_t msgh, int32_t flags);
 

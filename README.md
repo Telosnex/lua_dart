@@ -1,6 +1,6 @@
 # lua_dart
 
-The reference Lua 5.4 (PUC-Rio, 5.4.9) for Dart and Flutter, behind a stable
+The reference Lua 5.5 (PUC-Rio, 5.5.1) for Dart and Flutter, behind a stable
 C ABI, with an API in the style of the Lua C API. Native platforms use
 `dart:ffi`; the web uses the same C compiled to WebAssembly.
 

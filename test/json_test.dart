@@ -30,6 +30,16 @@ void dartToLua(LuaState ls, Object? value) {
     ls.pushString(value);
   } else if (value is List) {
     ls.createTable(value.length, 0);
+    if (value.contains(null)) {
+      // #t is the element count, as with json.decode: Lua 5.5 starts the
+      // length search at a hint, which rawLen of the full table sets to the
+      // end.
+      for (var i = 1; i <= value.length; i++) {
+        ls.pushBoolean(true);
+        ls.rawSetI(-2, i);
+      }
+      ls.rawLen(-1);
+    }
     for (var i = 0; i < value.length; i++) {
       dartToLua(ls, value[i]);
       ls.rawSetI(-2, i + 1);
@@ -422,6 +432,25 @@ void main() {
         reason: ls.toStr(-1),
       );
       expect(ls.toStr(-1), 'integerfloat9223372036854775807inf53');
+    });
+    test('the length of an array with null is its element count', () {
+      // As in Lua 5.4: the border is at the end, unless the last element is
+      // null.
+      for (final (input, length) in [
+        ('[1,null,3]', 3),
+        ('[null,null,3]', 3),
+        ('[1,null,null,null,null,null,null,8]', 8),
+        ('[1,2,null]', 2),
+        ('[null]', 0),
+      ]) {
+        expect(
+          ls.doString('return #json.decode(${jsonEncode(input)})'),
+          isTrue,
+          reason: ls.toStr(-1),
+        );
+        expect(ls.toStr(-1), '$length', reason: input);
+        ls.pop(1);
+      }
     });
     test('errors', () {
       for (final bad in ['', '[1,]', '01', 'nul', '"\t"', '1 2', '{"a"}']) {

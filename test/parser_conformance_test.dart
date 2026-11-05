@@ -14,7 +14,7 @@ import 'package:lua_dart/lua_dart.dart';
 import 'package:lua_dart/lua_parser.dart';
 import 'package:test/test.dart';
 
-/// Chunks that cover the Lua 5.4 grammar (manual section 9).
+/// Chunks that cover the Lua 5.5 grammar (manual section 9).
 const kSeeds = <String>[
   '',
   ';;',
@@ -66,6 +66,22 @@ const kSeeds = <String>[
   'if a then return elseif b then return 1 else return 2 end',
   'local function g() local function h() return h end return h end',
   'for i = 1, 2 do for j = 1, 2 do for k = 1, 2 do end end end',
+  // Lua 5.5.
+  'global x x = 1',
+  'global x, y = 1, 2 return x + y',
+  'global <const> a, b = 1, 2 return a',
+  'global a <const>, b = 1, 2 b = 3',
+  'global * x = 1',
+  'global <const> * return x',
+  'global function g(n) return n > 0 and g(n - 1) end',
+  'do global print, x x = 1 print(x) end',
+  'local <const> a, b = 1, 2 return a + b',
+  'local <close> c = nil',
+  'local function f(...t) return t.n, ... end',
+  'local f = function(a, ...args) return #args, a end',
+  'global = 1 global.x = 2 global(3) global "s" global {} t.global = global',
+  'global, x = 1, 2 global[1] = global:m()',
+  'local global = 1 return global',
 ];
 
 /// Chunks that both must refuse.
@@ -105,6 +121,14 @@ const kInvalid = <String>[
   'return 1 x = 2',
   'break break 1',
   '#!shebang line\nreturn 1',
+  'global 1',
+  'global <const>',
+  'global x =',
+  'global function a.b() end',
+  'global <foo> x',
+  'global <close> x',
+  'function f(... t, u) end',
+  'function f(...1) end',
 ];
 
 /// Messages of the checks that lparser.c makes beyond the grammar. Only
@@ -113,7 +137,10 @@ final kSemanticChecks = RegExp(
   r'break outside (a )?loop|no visible label|label .* already defined|'
   r'attempt to assign to const variable|multiple to-be-closed|'
   r'cannot use .\.\.\.. outside a vararg function|too many|overflow|'
-  r'jumps into the scope of local',
+  r'jumps into the scope of local|'
+  // Lua 5.5: global declarations.
+  r"variable '.*' not declared|global variables cannot be to-be-closed|"
+  r'is global when accessing variable',
 );
 
 /// Null if Lua compiles [code]; else its message.
@@ -195,6 +222,9 @@ const _kFragments = [
   'and',
   'goto',
   'x',
+  'global',
+  '*',
+  '...t',
 ];
 
 /// [seed] with one random edit: a character deleted, a fragment inserted,

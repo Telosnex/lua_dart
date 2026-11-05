@@ -1,7 +1,8 @@
 import 'lua_state.dart';
 
-/// The pseudo-index of the registry (LUA_REGISTRYINDEX of Lua 5.4).
-const luaRegistryIndex = -1001000;
+/// The pseudo-index of the registry (LUA_REGISTRYINDEX of Lua 5.5:
+/// -(INT_MAX / 2 + 1000)).
+const luaRegistryIndex = -1073742823;
 
 /// lua_pcall and lua_call: all results.
 const luaMultret = -1;
@@ -153,7 +154,7 @@ enum LuaLib {
   };
 }
 
-/// Operations of [LuaState.gc], with the values of lua.h.
+/// Operations of [LuaState.gc] (LUADART_GC* of lua_dart.h).
 enum LuaGcOp {
   stop(0),
   restart(1),
@@ -164,6 +165,9 @@ enum LuaGcOp {
 
   /// The remainder of [count], in bytes.
   countBytes(4),
+
+  /// One step of the collector. The argument is the size_t of LUA_GCSTEP;
+  /// 0 runs one basic step. Returns 1 at the end of a cycle.
   step(5),
   isRunning(9);
 

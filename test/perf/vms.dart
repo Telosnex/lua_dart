@@ -1,6 +1,6 @@
 // The two Lua VMs of the comparison benchmarks: lua_dardo_plus (Lua 5.3 in
 // Dart, with its default tuning flags, which are its fastest settings) and
-// lua_dart (Lua 5.4.9 in C over FFI).
+// lua_dart (Lua 5.5.1 in C over FFI).
 //
 // Each run makes a new state and opens the standard libraries, as the
 // lua_dardo_plus benchmarks did, so state setup is in the time of both VMs.

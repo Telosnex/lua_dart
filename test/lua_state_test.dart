@@ -31,8 +31,8 @@ void main() {
   tearDown(() => ls.close());
 
   test('build info names the ABI and the pinned Lua release', () {
-    expect(LuaState.buildInfo, 'lua_dart ABI 2; Lua 5.4.9');
-    expect(eval(ls, 'return _VERSION'), 'Lua 5.4');
+    expect(LuaState.buildInfo, 'lua_dart ABI 3; Lua 5.5.1');
+    expect(eval(ls, 'return _VERSION'), 'Lua 5.5');
   });
 
   group('values', () {
@@ -40,7 +40,10 @@ void main() {
       expect(eval(ls, 'return 1 + 2'), '3');
       expect(eval(ls, 'return 10 / 4'), '2.5');
       expect(eval(ls, 'return 3.0'), '3.0');
-      expect(eval(ls, 'return 2^63'), '9.2233720368548e+18');
+      // Lua 5.5: as many digits as reading the number back needs.
+      expect(eval(ls, 'return 2^63'), '9.2233720368547758e+18');
+      expect(eval(ls, 'return 0.1 + 0.2'), '0.30000000000000004');
+      expect(eval(ls, 'return 0.1'), '0.1');
       expect(eval(ls, 'return math.maxinteger'), '9223372036854775807');
       expect(eval(ls, 'return 1/0'), 'inf');
 
@@ -434,7 +437,7 @@ void main() {
       expect(threads, [false, true]);
     });
 
-    test('yield across pcall works (Lua 5.4)', () {
+    test('yield across pcall works', () {
       expect(
         eval(ls, '''
         local co = coroutine.wrap(function()

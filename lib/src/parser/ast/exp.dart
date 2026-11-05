@@ -125,12 +125,17 @@ class TableConstructorExp extends Exp {
 class FuncDefExp extends Exp {
   List<String> parList;
   bool isVararg;
+
+  /// The name of a named vararg parameter, `function f(...args)` (Lua 5.5):
+  /// a local table of the extra arguments. Null for `...` and no vararg.
+  String? varargName;
   Block block;
 
   FuncDefExp({
     required this.parList,
     required this.block,
     required this.isVararg,
+    this.varargName,
   });
 }
 
