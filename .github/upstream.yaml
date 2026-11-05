@@ -3,5 +3,7 @@
 sources:
   - name: Lua
     tags: https://github.com/lua/lua.git
+    # Only the 5.4 line: 5.5 is a planned upgrade, not a fix. Change this with the pin.
+    version: 'v(5\.4\.\d+)'
     pin: {file: native_artifacts/sources.json, pattern: 'lua-(\d+\.\d+\.\d+)\.tar\.gz'}
     alert: patch
