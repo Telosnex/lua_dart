@@ -2,3 +2,7 @@
 # lua_dardo_plus next to lua_dart.
 test/perf/
 build/
+
+# Fetched Lua sources (also in .gitignore, which pub does not read next to
+# a .pubignore). The hook gets Lua from native_artifacts/sources.json.
+/third_party/
