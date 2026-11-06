@@ -1,3 +1,8 @@
+## 0.2.1
+
+- The package no longer includes the Lua source tarballs from `third_party/`
+  (about 770 KB). The build hook never used them. No code changes.
+
 ## 0.2.0
 
 - Lua 5.5.1, up from 5.4.9. 5.4 gets no more releases. Lua code: `global`
