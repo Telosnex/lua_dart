@@ -1,3 +1,7 @@
+## 1.0.0
+
+- First stable release. Requires kiln 1.0.0, whose source key leaves out the pubspec's `version` and `description`, so a release that changes only those needs no new native build.
+
 ## 0.2.3
 
 - Shorter package description, and a usage example for pub.dev. The README example now calls `LuaState.loadRuntime()`, which every isolate needs before its first state.

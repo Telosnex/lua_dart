@@ -3,7 +3,7 @@ description: >-
   The reference Lua 5.5 for Dart and Flutter, with an API in the style of the
   Lua C API: dart:ffi on native platforms, WebAssembly on the web. Memory
   limits and interrupts.
-version: 0.2.3
+version: 1.0.0
 repository: https://github.com/Telosnex/lua_dart
 issue_tracker: https://github.com/Telosnex/lua_dart/issues
 
@@ -15,7 +15,7 @@ dependencies:
   crypto: ^3.0.6
   ffi: ^2.1.4
   hooks: ^2.2.0
-  kiln: ^0.2.0
+  kiln: ^1.0.0
 
 dev_dependencies:
   ffigen: ^20.1.1
