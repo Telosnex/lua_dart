@@ -1,3 +1,7 @@
+## 0.2.3
+
+- Shorter package description, and a usage example for pub.dev. The README example now calls `LuaState.loadRuntime()`, which every isolate needs before its first state.
+
 ## 0.2.2
 
 - Requires `code_assets` 2.2, `hooks` 2.2 and `kiln` 0.2. With `code_assets` 1.x, the package could not be installed with current `objective_c` and `shared_preferences_foundation`.

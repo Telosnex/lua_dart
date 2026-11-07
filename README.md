@@ -7,7 +7,8 @@ C ABI, with an API in the style of the Lua C API. Native platforms use
 ```dart
 import 'package:lua_dart/lua_dart.dart';
 
-void main() {
+Future<void> main() async {
+  await LuaState.loadRuntime(); // once per isolate
   final ls = LuaState.newState(memoryLimit: 64 << 20);
   ls.openLibs(sandbox: true);
   ls.register('greet', (ls) {
