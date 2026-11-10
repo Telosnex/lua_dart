@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: Telosnex/telosnex_ci_tools/actions/setup-flutter@bba81d85dab7716cc288df9877812dd3299ff11e # v0.5.14
+      - uses: Telosnex/telosnex_ci_tools/actions/setup-flutter@f97b50830596a30b24ea34c643a3b7dcce349972 # v0.5.15
       - run: dart pub get
       - run: dart test -r expanded
 
@@ -72,10 +72,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: Telosnex/telosnex_ci_tools/actions/setup-flutter@bba81d85dab7716cc288df9877812dd3299ff11e # v0.5.14
+      - uses: Telosnex/telosnex_ci_tools/actions/setup-flutter@f97b50830596a30b24ea34c643a3b7dcce349972 # v0.5.15
       - run: dart pub get
       - run: dart run kiln:web install-dev
-      - uses: Telosnex/telosnex_ci_tools/actions/dart-test-browser@bba81d85dab7716cc288df9877812dd3299ff11e # v0.5.14
+      - uses: Telosnex/telosnex_ci_tools/actions/dart-test-browser@f97b50830596a30b24ea34c643a3b7dcce349972 # v0.5.15
         with:
           platform: ${{ env.BROWSER }}
           compiler: ${{ env.COMPILER }}
@@ -116,9 +116,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: Telosnex/telosnex_ci_tools/actions/setup-flutter@bba81d85dab7716cc288df9877812dd3299ff11e # v0.5.14
+      - uses: Telosnex/telosnex_ci_tools/actions/setup-flutter@f97b50830596a30b24ea34c643a3b7dcce349972 # v0.5.15
       - run: dart pub get
-      - uses: Telosnex/telosnex_ci_tools/actions/ios-simulator-boot@bba81d85dab7716cc288df9877812dd3299ff11e # v0.5.14
+      - uses: Telosnex/telosnex_ci_tools/actions/ios-simulator-boot@f97b50830596a30b24ea34c643a3b7dcce349972 # v0.5.15
       - run: dart run tool/prebuilt_artifacts.dart ios-arm64-iphonesimulator
       # The C smoke test, with the interrupt from another thread. The script
       # writes no log file: its output goes to one, for the upload.
@@ -142,10 +142,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: Telosnex/telosnex_ci_tools/actions/setup-flutter@bba81d85dab7716cc288df9877812dd3299ff11e # v0.5.14
+      - uses: Telosnex/telosnex_ci_tools/actions/setup-flutter@f97b50830596a30b24ea34c643a3b7dcce349972 # v0.5.15
       - run: dart pub get
       - id: emulator
-        uses: Telosnex/telosnex_ci_tools/actions/android-emulator@bba81d85dab7716cc288df9877812dd3299ff11e # v0.5.14
+        uses: Telosnex/telosnex_ci_tools/actions/android-emulator@f97b50830596a30b24ea34c643a3b7dcce349972 # v0.5.15
         with:
           api-level: '36'
       - run: dart run tool/prebuilt_artifacts.dart android-x64
@@ -169,8 +169,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: Telosnex/telosnex_ci_tools/actions/setup-flutter@bba81d85dab7716cc288df9877812dd3299ff11e # v0.5.14
+      - uses: Telosnex/telosnex_ci_tools/actions/setup-flutter@f97b50830596a30b24ea34c643a3b7dcce349972 # v0.5.15
       - run: dart pub get
-      - uses: Telosnex/telosnex_ci_tools/actions/android-arm64-chroot@bba81d85dab7716cc288df9877812dd3299ff11e # v0.5.14
+      - uses: Telosnex/telosnex_ci_tools/actions/android-arm64-chroot@f97b50830596a30b24ea34c643a3b7dcce349972 # v0.5.15
       - run: dart run tool/prebuilt_artifacts.dart android-arm64
       - run: tool/test_android_device.sh
