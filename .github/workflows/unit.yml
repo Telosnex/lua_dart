@@ -34,6 +34,9 @@ jobs:
       - run: dart tool/generate_exports.dart --check
       - run: dart tool/generate_backends.dart --check
       - run: dart tool/verify_artifacts.dart
+      # Authenticated: anonymous GitHub API calls share a small rate limit.
       - run: dart run kiln:check
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
       # The hook builds the library from source here (CMake, GCC).
       - run: dart test -r expanded
